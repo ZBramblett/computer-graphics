@@ -1,5 +1,5 @@
 # Preface
-This is a overall directory for all my computer graphics. 
+This is a overall directory for all my computer graphics.
 My raytracing assignments are currently located in the startercode folder
 
 ## TLDR (You already have everything setup and just want to run it)
@@ -32,14 +32,14 @@ type cd buildVCPkg
 type cmake --build .
 ```
 
-### Congrats you now have now built the build folder
+### Congrats you now have the build folder
 
 ```
 You can run ctests to run the unit tests
 You will also have all the executables and can run them however your machine does that
 ```
 
-# If the above doesn't work make sure you have installed vcpkg and cmake (Source is from the original README.md provided by Dr. Willsemsen in the starter code)
+# Make sure you have installed vcpkg and cmake (Source is from the original README.md provided by Dr. Willsemsen in the starter code)
 Before you get too deep into this, you will need some tools, depending on your operating system and hardware. To build this, you do need some development tools for C++. The following sections will help with each of your specific environments.  Minimally, you need a terminal, a good C++ editor, a git command line client, and of course a C++ compiler toolchain.
 
 ### Linux
