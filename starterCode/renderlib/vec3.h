@@ -33,7 +33,7 @@ class vec3 {
             e[2] *= t;
             return *this;
         }
-
+        //scalar division but its reusing scalar multiplication becase its multiplying by the reciprocal
         vec3& operator/=(double t) {
             return *this *= 1/t;
         }
@@ -55,19 +55,19 @@ using point3 = vec3;
 inline std::ostream& operator<<(std::ostream& out, const vec3& v) {
     return out << v.e[0] << ' ' << v.e[1] << ' ' << v.e[2];
 }
-
+// operator overload of +, adds two vectors together and returns a new vector
 inline vec3 operator+(const vec3& u, const vec3& v) {
     return vec3(u.e[0] + v.e[0], u.e[1] + v.e[1], u.e[2] + v.e[2]);
 }
-
+//operator overload of -, subtracts two vectors and returns a new vector
 inline vec3 operator-(const vec3& u, const vec3& v) {
     return vec3(u.e[0] - v.e[0], u.e[1] - v.e[1], u.e[2] - v.e[2]);
 }
-
+//operator overload of *, multiplies two vectors together and returns a new vector (component wise multiplication)
 inline vec3 operator*(const vec3& u, const vec3& v) {
     return vec3(u.e[0] * v.e[0], u.e[1] * v.e[1], u.e[2] * v.e[2]);
 }
-
+//operator overload of *, multiplies a vector by a scalar (scalar multiplication)
 inline vec3 operator*(double t, const vec3& v) {
     return vec3(t*v.e[0], t*v.e[1], t*v.e[2]);
 }
@@ -75,17 +75,15 @@ inline vec3 operator*(double t, const vec3& v) {
 inline vec3 operator*(const vec3& v, double t) {
     return t * v;
 }
-
+//operator overload of /, divides a vector by a scaler (scalar division)
 inline vec3 operator/(const vec3& v, double t) {
     return (1/t) * v;
 }
-
+// dot product
 inline double dot(const vec3& u, const vec3& v) {
-    return u.e[0] * v.e [0]
-    + u.e[1] * v.e[1]
-    + u.e[2] * v.e[2];
+    return u.e[0] * v.e [0] + u.e[1] * v.e[1] + u.e[2] * v.e[2];
 }
-
+//cross
 inline vec3 cross(const vec3& u, const vec3& v) {
     return vec3(u.e[1] * v.e[2] - u.e[2] * v.e[1],
                 u.e[2] * v.e[0] - u.e[0] * v.e[2],

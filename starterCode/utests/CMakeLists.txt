@@ -19,7 +19,9 @@ include(Catch)
 # 
 set(UTESTS 
   utest_Success
-  utest_Failure)
+  utest_Failure
+  utest_vec3
+  )
 
 # 
 # For each of the executables named in ${UTESTS}, compile them into a
@@ -31,6 +33,7 @@ foreach(uexec ${UTESTS})
 	PRIVATE
 	Catch2::Catch2WithMain
 	cs4212-util
+  renderlib
   )
 
   # add_test(NAME ${uexec} COMMAND $<TARGET_FILE:${uexec}>)
