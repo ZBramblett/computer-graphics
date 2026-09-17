@@ -115,3 +115,5 @@ add_subdirectory(OpenGL)
 #
 enable_testing()
 add_subdirectory(utests)
+
+add_subdirectory(raytracer)

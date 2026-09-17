@@ -16,12 +16,11 @@ void Framebuffer::clearToColor(const color &c)
 // Clear the framebuffer to a horizontal gradient between two colors, using linear interpolation.
 void Framebuffer::clearToGradient(const color &c1, const color &c2)
 {
-  for (auto x = 0; x < width; x++) {
-    for (auto y = 0; y < height; y++) {
-      auto t = double(y) / (height);
+  for (auto y = 0; y < height; y++) {
+    auto t = double(y) / (height);
+    color c = (1 - t) * c1 + t * c2;
 
-      color c = (1 - t) * c1 + t * c2;
-
+    for (auto x = 0; x < width; x++) {
       setPixelColor(x, y, c);
     }
   }
@@ -46,16 +45,16 @@ void Framebuffer::exportToPNG(const std::string &filename)
 
   for (int j = 0; j < height; ++j) {
     for (int i = 0; i < width; ++i) {
-        // int flipped_j = (height-1) - j;
+      // int flipped_j = (height-1) - j;
 
-        // vec3 color = fbStorage[flipped_j * width + i];
-        vec3 color = fbStorage[j*width + i];
+      // vec3 color = fbStorage[flipped_j * width + i];
+      vec3 color = fbStorage[j * width + i];
 
-        png::byte r = static_cast<png::byte>(color.x() * 255.0);
-        png::byte g = static_cast<png::byte>(color.y() * 255.0);
-        png::byte b = static_cast<png::byte>(color.z() * 255.0);
+      png::byte r = static_cast<png::byte>(color.x() * 255.0);
+      png::byte g = static_cast<png::byte>(color.y() * 255.0);
+      png::byte b = static_cast<png::byte>(color.z() * 255.0);
 
-        imData[j][i] = png::rgb_pixel(r, g, b);
+      imData[j][i] = png::rgb_pixel(r, g, b);
     }
   }
 
