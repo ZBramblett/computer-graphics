@@ -3,6 +3,7 @@ add_library(renderlib STATIC
     ray.h
     Framebuffer.h
     Framebuffer.cpp
+    Camera.h
 )
 
 
