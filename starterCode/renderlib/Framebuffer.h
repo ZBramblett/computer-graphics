@@ -1,3 +1,5 @@
+#pragma once
+
 #include <vector>
 #include "vec3.h"
 #include "color.h"
@@ -15,6 +17,9 @@ public:
   void setPixelColor(int idx, const color &c);
 
   void exportToPNG(const std::string &filename);
+
+  int getHeight() const;
+  int getWidth() const;
 
 private:
   int width, height;

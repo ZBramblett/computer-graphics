@@ -45,10 +45,10 @@ void Framebuffer::exportToPNG(const std::string &filename)
 
   for (int j = 0; j < height; ++j) {
     for (int i = 0; i < width; ++i) {
-      // int flipped_j = (height-1) - j;
+      int flipped_j = (height - 1) - j;
 
-      // vec3 color = fbStorage[flipped_j * width + i];
-      vec3 color = fbStorage[j * width + i];
+      vec3 color = fbStorage[flipped_j * width + i];
+      // vec3 color = fbStorage[j * width + i];
 
       png::byte r = static_cast<png::byte>(color.x() * 255.0);
       png::byte g = static_cast<png::byte>(color.y() * 255.0);
@@ -57,6 +57,15 @@ void Framebuffer::exportToPNG(const std::string &filename)
       imData[j][i] = png::rgb_pixel(r, g, b);
     }
   }
-
   imData.write(filename);
+}
+
+int Framebuffer::getHeight() const
+{
+  return height;
+}
+
+int Framebuffer::getWidth() const
+{
+  return width;
 }
