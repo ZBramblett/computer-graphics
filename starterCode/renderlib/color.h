@@ -22,4 +22,14 @@ inline void write_color(std::ostream &out, const color &pixel_color)
   out << rbyte << ' ' << gbyte << ' ' << bbyte << '\n';
 }
 
+inline vec3 normalizeColor(vec3 rawRGB)
+{
+  vec3 normalizedRGB(0, 0, 0);
+  for (int i = 0; i < 3; ++i) {
+    double value = rawRGB[i];
+    normalizedRGB[i] = value / 255;
+  }
+  return normalizedRGB;
+}
+
 #endif
