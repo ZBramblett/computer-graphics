@@ -18,7 +18,7 @@ public:
     double B = dot(d2, oc);
     double C = dot(oc, oc) - rSquared;
 
-    double discriminant = std::sqrt((B * B) - 4 * (A * C));
+    double discriminant = (B * B) - 4 * (A * C);
     // checking the discriminant
     if (discriminant < 0) {
       return false;

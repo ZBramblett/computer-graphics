@@ -11,15 +11,15 @@ int main()
   vec3 viewdir(0, 0, -1);
   point3 origin(0, 0, 0);
   double imagePlaneWidth = 2;
-  double focalLength = .1;
+  double focalLength = 1;
   PerspectiveCamera p(viewdir, origin, fb.getHeight(), fb.getWidth(), imagePlaneWidth, focalLength);
-  point3 sphereCenter(0, 0, 0);
+  point3 sphereCenter(0, 0, -3);
   double sphereRadius = 1.0;
 
   Sphere s(sphereCenter, sphereRadius);
 
-  color one(0, 0, 0);
-  color two(255, 255, 255);
+  color sphere(188, 0, 45);
+  color background(255, 255, 255);
 
   for (int x = 0; x < fb.getWidth(); ++x) {
     for (int y = 0; y < fb.getHeight(); ++y) {
@@ -27,9 +27,9 @@ int main()
       p.generateRay(x, y, r);
 
       if (s.intersect(r)) {
-        fb.setPixelColor(x, y, normalizeColor(one));
+        fb.setPixelColor(x, y, normalizeColor(sphere));
       } else {
-        fb.setPixelColor(x, y, normalizeColor(two));
+        fb.setPixelColor(x, y, normalizeColor(background));
       }
     }
   }
