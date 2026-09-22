@@ -4,6 +4,7 @@ add_library(renderlib STATIC
     Framebuffer.h
     Framebuffer.cpp
     Camera.h
+    Sphere.h
 )
 
 

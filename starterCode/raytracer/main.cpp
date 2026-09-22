@@ -2,6 +2,7 @@
 #include "PerspectiveCamera.h"
 #include "ray.h"
 #include "color.h"
+#include "Sphere.h"
 
 
 int main()
@@ -12,33 +13,63 @@ int main()
   double imagePlaneWidth = 2;
   double focalLength = .1;
   PerspectiveCamera p(viewdir, origin, fb.getHeight(), fb.getWidth(), imagePlaneWidth, focalLength);
+  point3 sphereCenter(0, 0, 0);
+  double sphereRadius = 1.0;
 
+  Sphere s(sphereCenter, sphereRadius);
 
-  color one(23, 6, 209);
-  color two(199, 6, 48);
+  color one(0, 0, 0);
+  color two(255, 255, 255);
 
-  for (int x = 0; x < 1600; ++x) {
-    for (int y = 0; y < 900; ++y) {
+  for (int x = 0; x < fb.getWidth(); ++x) {
+    for (int y = 0; y < fb.getHeight(); ++y) {
       ray r;
       p.generateRay(x, y, r);
-      vec3 direction = unit_vector(r.direction());
-      // color ray_dir_color = 0.5 * (direction + vec3(1, 1, 1));
 
-      double frequency = direction.y() * 30;
-      double stripes = std::cos(frequency);
-      color ray_dir_color;
-
-      if (stripes > 0) {
-        ray_dir_color = normalizeColor(one);
+      if (s.intersect(r)) {
+        fb.setPixelColor(x, y, normalizeColor(one));
       } else {
-        ray_dir_color = normalizeColor(two);
+        fb.setPixelColor(x, y, normalizeColor(two));
       }
-
-      // color ray_dir_color = vec3(brightness, brightness, brightness);
-
-      fb.setPixelColor(x, y, ray_dir_color);
     }
   }
 
-  fb.exportToPNG("8HoursOfWork.png");
+  fb.exportToPNG("generated_image.png");
 };
+
+
+// Code for cosine waves
+//  color one(23, 6, 209);
+//  color two(199, 6, 48);
+
+// for (int x = 0; x < 1600; ++x) {
+//   for (int y = 0; y < 900; ++y) {
+//     ray r;
+//     p.generateRay(x, y, r);
+//     vec3 direction = unit_vector(r.direction());
+
+//     double frequency = direction.y() * 30;
+//     double stripes = std::cos(frequency);
+//     color ray_dir_color;
+
+//     if (stripes > 0) {
+//       ray_dir_color = normalizeColor(one);
+//     } else {
+//       ray_dir_color = normalizeColor(two);
+//     }
+//   }
+// }
+
+// Code for ray to color stuff
+//  for (int x = 0; x < 1600; ++x) {
+//    for (int y = 0; y < 900; ++y) {
+//      ray r;
+//      p.generateRay(x, y, r);
+//      vec3 direction = unit_vector(r.direction());
+//      color ray_dir_color = 0.5 * (direction + vec3(1, 1, 1));
+
+//     color ray_dir_color = vec3(brightness, brightness, brightness);
+
+//     fb.setPixelColor(x, y, ray_dir_color);
+//   }
+// }
