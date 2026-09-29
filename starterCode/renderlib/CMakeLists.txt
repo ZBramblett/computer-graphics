@@ -1,10 +1,13 @@
 add_library(renderlib STATIC
+    rtweekend.h
     vec3.h
     ray.h
     Framebuffer.h
     Framebuffer.cpp
     Camera.h
+    Shape.h
     Sphere.h
+    shapeList.h
 )
 
 

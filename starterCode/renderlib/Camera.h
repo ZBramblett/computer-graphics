@@ -17,7 +17,7 @@ public:
     r = imagePlaneWidth / 2;
     b = -imagePlaneHeight / 2;
     t = imagePlaneHeight / 2;
-    }
+  }
 
   virtual ~Camera() = default;
 
