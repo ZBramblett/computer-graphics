@@ -7,6 +7,7 @@ add_library(renderlib STATIC
     Camera.h
     Shape.h
     Sphere.h
+    Sphere.cpp
     shapeList.h
 )
 
