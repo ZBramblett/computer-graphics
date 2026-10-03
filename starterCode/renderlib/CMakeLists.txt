@@ -8,7 +8,8 @@ add_library(renderlib STATIC
     Shape.h
     Sphere.h
     Sphere.cpp
-    shapeList.h
+    ShapeList.h
+    ShapeList.cpp
 )
 
 

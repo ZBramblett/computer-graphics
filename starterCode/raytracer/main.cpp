@@ -3,7 +3,7 @@
 #include "Framebuffer.h"
 #include "PerspectiveCamera.h"
 #include "Sphere.h"
-#include "shapeList.h"
+#include "ShapeList.h"
 
 color ray_color(const ray &r, const Shape &world)
 {
