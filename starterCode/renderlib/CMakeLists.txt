@@ -10,6 +10,8 @@ add_library(renderlib STATIC
     Sphere.cpp
     ShapeList.h
     ShapeList.cpp
+    PerspectiveCamera.cpp
+    Camera.cpp
 )
 
 
