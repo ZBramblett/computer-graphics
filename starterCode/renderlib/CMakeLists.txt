@@ -19,6 +19,7 @@ add_library(renderlib STATIC
     Shape.cpp
     Shader.h
     Shader.cpp
+    SolidColorShader.cpp
 )
 
 
