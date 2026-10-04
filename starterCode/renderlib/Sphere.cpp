@@ -1,7 +1,7 @@
 #include "Sphere.h"
 
 
-Sphere::Sphere(point3 sphereCenter, double sphereRadius) : center(sphereCenter), radius(sphereRadius) {}
+Sphere::Sphere(point3 sphereCenter, double sphereRadius, color shapeColor) : Shape(shapeColor), center(sphereCenter), radius(sphereRadius) {}
 
 bool Sphere::intersect(const ray &r, double ray_tmin, double ray_tmax, HitRecord &rec) const
 {
@@ -36,5 +36,6 @@ bool Sphere::intersect(const ray &r, double ray_tmin, double ray_tmax, HitRecord
   rec.t = root;
   rec.p = r.at(root);
   rec.normal = (rec.p - center) / radius;
+  rec.shapeColor = shapeColor;
   return true;
 }

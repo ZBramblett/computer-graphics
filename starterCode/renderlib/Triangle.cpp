@@ -1,6 +1,6 @@
 #include "Triangle.h"
 
-Triangle::Triangle(point3 a, point3 b, point3 c) : a(a), b(b), c(c) {}
+Triangle::Triangle(point3 a, point3 b, point3 c, color shapeColor) : Shape(shapeColor), a(a), b(b), c(c) {}
 
 
 bool Triangle::intersect(const ray &r, double ray_tmin, double ray_tmax, HitRecord &rec) const
@@ -39,6 +39,7 @@ bool Triangle::intersect(const ray &r, double ray_tmin, double ray_tmax, HitReco
     rec.t = t;
     rec.p = r.at(t);
     rec.normal = unit_vector(cross((b - a), (c - a)));
+    rec.shapeColor = shapeColor;
     return true;
   }
   return false;

@@ -5,45 +5,26 @@
 #include "Sphere.h"
 #include "Triangle.h"
 #include "ShapeList.h"
+#include "Scene.h"
 
-color ray_color(const ray &r, const Shape &world)
-{
-  HitRecord rec;
-  if (world.intersect(r, 0, infinity, rec)) {
-    return 0.5 * (rec.normal + color(1, 1, 1));
-  }
-
-  vec3 unit_direction = unit_vector(r.direction());
-  auto a = 0.5 * (unit_direction.y() + 1.0);
-  return (1.0 - a) * color(1.0, 1.0, 1.0) + a * color(0.5, 0.7, 1.0);
-}
 
 int main()
 {
   Framebuffer fb(200, 200);
   vec3 viewdir(0, 0, -1);
   point3 origin(0, 0, 0);
-  double imagePlaneWidth = 2;
+  double imagePlaneWidth = .5;
   double focalLength = 1;
-  PerspectiveCamera p(viewdir, origin, fb.getHeight(), fb.getWidth(), imagePlaneWidth, focalLength);
+  auto p = make_shared<PerspectiveCamera>(viewdir, origin, fb.getHeight(), fb.getWidth(), imagePlaneWidth, focalLength);
 
-  ShapeList world;
+  Scene scene;
+  scene.setCamera(p);
+  scene.addShape(make_shared<Triangle>(point3(-1.2, -0.2, -7), point3(.8, -0.5, -5), point3(0.9, 0, -5), color(1, 0, 0)));
+  scene.addShape(make_shared<Triangle>(point3(0.773205, -0.93923, -7), point3(0.0330127, 0.94282, -5), point3(-0.45, 0.779423, -5), color(0, 1, 0)));
+  scene.addShape(make_shared<Triangle>(point3(0.426795, 1.13923, -7), point3(-0.833013, -0.44282, -5), point3(-0.45, -0.779423, -5), color(0, 0, 1)));
 
-  // world.add(make_shared<Sphere>(point3(0, 0, -1), 0.5));
-  // world.add(make_shared<Sphere>(point3(0, -100.5, -1), 100));
-  // world.add(make_shared<Sphere>(point3(-2, 0, -2), 0.5));
-  // world.add(make_shared<Sphere>(point3(2, 0, -2), 0.5));
-  world.add(make_shared<Triangle>(point3(-1, -1, -2), point3(1, -1, -2), point3(0, 1, -2)));
+  scene.renderScene(fb);
 
-  for (int x = 0; x < fb.getWidth(); ++x) {
-    for (int y = 0; y < fb.getHeight(); ++y) {
-      ray r;
-      p.generateRay(x, y, r);
-
-      color pixel_color = ray_color(r, world);
-      fb.setPixelColor(x, y, pixel_color);
-    }
-  }
 
   fb.exportToPNG("generated_image.png");
 };

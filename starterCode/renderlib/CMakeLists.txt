@@ -12,7 +12,11 @@ add_library(renderlib STATIC
     ShapeList.cpp
     PerspectiveCamera.cpp
     Camera.cpp
+    Triangle.h
     Triangle.cpp
+    Scene.h
+    Scene.cpp
+    Shape.cpp
 )
 
 
