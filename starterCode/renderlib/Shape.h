@@ -13,6 +13,5 @@ class Shape
 {
 public:
   virtual ~Shape() = default;
-
   virtual bool intersect(const ray &r, double ray_tmin, double ray_tmax, HitRecord &rec) const = 0;
 };

@@ -3,6 +3,7 @@
 #include "Framebuffer.h"
 #include "PerspectiveCamera.h"
 #include "Sphere.h"
+#include "Triangle.h"
 #include "ShapeList.h"
 
 color ray_color(const ray &r, const Shape &world)
@@ -28,10 +29,11 @@ int main()
 
   ShapeList world;
 
-  world.add(make_shared<Sphere>(point3(0, 0, -1), 0.5));
-  world.add(make_shared<Sphere>(point3(0, -100.5, -1), 100));
-  world.add(make_shared<Sphere>(point3(-2, 0, -2), 0.5));
-  world.add(make_shared<Sphere>(point3(2, 0, -2), 0.5));
+  // world.add(make_shared<Sphere>(point3(0, 0, -1), 0.5));
+  // world.add(make_shared<Sphere>(point3(0, -100.5, -1), 100));
+  // world.add(make_shared<Sphere>(point3(-2, 0, -2), 0.5));
+  // world.add(make_shared<Sphere>(point3(2, 0, -2), 0.5));
+  world.add(make_shared<Triangle>(point3(-1, -1, -2), point3(1, -1, -2), point3(0, 1, -2)));
 
   for (int x = 0; x < fb.getWidth(); ++x) {
     for (int y = 0; y < fb.getHeight(); ++y) {

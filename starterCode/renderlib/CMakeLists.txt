@@ -12,6 +12,7 @@ add_library(renderlib STATIC
     ShapeList.cpp
     PerspectiveCamera.cpp
     Camera.cpp
+    Triangle.cpp
 )
 
 
