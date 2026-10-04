@@ -17,6 +17,8 @@ add_library(renderlib STATIC
     Scene.h
     Scene.cpp
     Shape.cpp
+    Shader.h
+    Shader.cpp
 )
 
 
