@@ -1,5 +1,6 @@
 #include "Scene.h"
 #include "rtweekend.h"
+#include "Shader.h"
 
 void Scene::setCamera(shared_ptr<Camera> camera)
 {
@@ -33,7 +34,7 @@ color Scene::findRayColor(const ray &r) const
 {
   HitRecord rec;
   if (world.intersect(r, 0, infinity, rec)) {
-    return rec.shapeColor;
+    return rec.shader->shade(r, rec);
   }
 
   vec3 unit_direction = unit_vector(r.direction());
