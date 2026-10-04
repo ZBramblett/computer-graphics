@@ -1,6 +1,7 @@
 #pragma once
 #include "color.h"
-#include "Shape.h"
+#include "ray.h"
+#include "HitRecord.h"
 
 class Shader
 {

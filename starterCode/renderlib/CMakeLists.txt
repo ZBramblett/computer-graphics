@@ -5,6 +5,7 @@ add_library(renderlib STATIC
     Framebuffer.h
     Framebuffer.cpp
     Camera.h
+    HitRecord.h
     Shape.h
     Sphere.h
     Sphere.cpp
