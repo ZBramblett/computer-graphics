@@ -8,6 +8,7 @@
 #include "Scene.h"
 #include "SolidColorShader.h"
 #include "LambertianShader.h"
+#include "BlinnPhongShader.h"
 #include "PointLight.h"
 
 
@@ -19,19 +20,28 @@ int main()
   double imagePlaneWidth = .5;
   double focalLength = 1;
   auto p = make_shared<PerspectiveCamera>(viewdir, origin, fb.getHeight(), fb.getWidth(), imagePlaneWidth, focalLength);
+
   auto red = make_shared<SolidColorShader>(color(1, 0, 0));
   auto green = make_shared<SolidColorShader>(color(0, 1, 0));
   auto blue = make_shared<SolidColorShader>(color(0, 0, 1));
+
   auto lambertianRed = make_shared<LambertianShader>(color(1, 0, 0));
   auto lambertianGreen = make_shared<LambertianShader>(color(0, 1, 0));
   auto lambertianBlue = make_shared<LambertianShader>(color(0, 0, 1));
-  auto light = make_shared<PointLight>(color(1, 1, 1), 1, vec3(0, 1, 0));
+
+  auto blinnPhongRed = make_shared<BlinnPhongShader>(color(1, 0, 0));
+  auto blinnPhongGreen = make_shared<BlinnPhongShader>(color(0, 1, 0));
+  auto blinnPhongBlue = make_shared<BlinnPhongShader>(color(0, 0, 1));
+
+  auto light = make_shared<PointLight>(color(1, 1, 1), 1, vec3(0, .75, 0));
 
 
   Scene scene;
   scene.setCamera(p);
   scene.addLight(light);
-  scene.addShape(make_shared<Sphere>(point3(0, 0, -1), .1, lambertianRed));
+  scene.addShape(make_shared<Sphere>(point3(0, 0, -1), .1, blinnPhongRed));
+  scene.addShape(make_shared<Sphere>(point3(-.25, .15, -2), .1, lambertianGreen));
+  scene.addShape(make_shared<Sphere>(point3(.25, .15, -2), .1, lambertianBlue));
 
 
   scene.renderScene(fb);

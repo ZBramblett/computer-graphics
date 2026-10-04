@@ -28,6 +28,8 @@ add_library(renderlib STATIC
     HitRecord.cpp
     LambertianShader.h
     LambertianShader.cpp
+    BlinnPhongShader.h
+    BlinnPhongShader.cpp
 )
 
 
