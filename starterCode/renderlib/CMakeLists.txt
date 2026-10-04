@@ -26,6 +26,8 @@ add_library(renderlib STATIC
     PointLight.h
     PointLight.cpp
     HitRecord.cpp
+    LambertianShader.h
+    LambertianShader.cpp
 )
 
 

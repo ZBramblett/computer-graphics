@@ -7,6 +7,8 @@
 #include "ShapeList.h"
 #include "Scene.h"
 #include "SolidColorShader.h"
+#include "LambertianShader.h"
+#include "PointLight.h"
 
 
 int main()
@@ -20,12 +22,17 @@ int main()
   auto red = make_shared<SolidColorShader>(color(1, 0, 0));
   auto green = make_shared<SolidColorShader>(color(0, 1, 0));
   auto blue = make_shared<SolidColorShader>(color(0, 0, 1));
+  auto lambertianRed = make_shared<LambertianShader>(color(1, 0, 0));
+  auto lambertianGreen = make_shared<LambertianShader>(color(0, 1, 0));
+  auto lambertianBlue = make_shared<LambertianShader>(color(0, 0, 1));
+  auto light = make_shared<PointLight>(color(1, 1, 1), 1, vec3(0, 1, 0));
+
 
   Scene scene;
   scene.setCamera(p);
-  scene.addShape(make_shared<Triangle>(point3(-1.2, -0.2, -7), point3(.8, -0.5, -5), point3(0.9, 0, -5), red));
-  scene.addShape(make_shared<Triangle>(point3(0.773205, -0.93923, -7), point3(0.0330127, 0.94282, -5), point3(-0.45, 0.779423, -5), green));
-  scene.addShape(make_shared<Triangle>(point3(0.426795, 1.13923, -7), point3(-0.833013, -0.44282, -5), point3(-0.45, -0.779423, -5), blue));
+  scene.addLight(light);
+  scene.addShape(make_shared<Sphere>(point3(0, 0, -1), .1, lambertianRed));
+
 
   scene.renderScene(fb);
 
