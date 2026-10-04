@@ -21,6 +21,11 @@ add_library(renderlib STATIC
     Shader.h
     Shader.cpp
     SolidColorShader.cpp
+    Light.h
+    Light.cpp
+    PointLight.h
+    PointLight.cpp
+    HitRecord.cpp
 )
 
 

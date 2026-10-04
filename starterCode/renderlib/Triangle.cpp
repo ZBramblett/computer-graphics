@@ -38,7 +38,7 @@ bool Triangle::intersect(const ray &r, double ray_tmin, double ray_tmax, HitReco
   if (Beta > 0 && Gamma > 0 && Beta + Gamma < 1 && t > ray_tmin && t < ray_tmax) {
     rec.t = t;
     rec.p = r.at(t);
-    rec.normal = unit_vector(cross((b - a), (c - a)));
+    rec.setFaceNormal(r, unit_vector(cross((b - a), (c - a))));
     rec.shader = shader;
     return true;
   }

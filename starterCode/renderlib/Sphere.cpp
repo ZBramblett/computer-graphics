@@ -35,7 +35,7 @@ bool Sphere::intersect(const ray &r, double ray_tmin, double ray_tmax, HitRecord
   // fill in the hit record for whoever called us
   rec.t = root;
   rec.p = r.at(root);
-  rec.normal = (rec.p - center) / radius;
+  rec.setFaceNormal(r, (rec.p - center) / radius);
   rec.shader = shader;
   return true;
 }

@@ -15,4 +15,5 @@ struct HitRecord
   vec3 normal;
   double t;
   shared_ptr<Shader> shader;
+  void setFaceNormal(const ray &r, const vec3 &outward_normal);
 };

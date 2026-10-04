@@ -30,11 +30,16 @@ void Scene::renderScene(Framebuffer &fb) const
     }
   }
 }
+void Scene::addLight(shared_ptr<Light> light)
+{
+  lights.push_back(light);
+}
+
 color Scene::findRayColor(const ray &r) const
 {
   HitRecord rec;
   if (world.intersect(r, 0, infinity, rec)) {
-    return rec.shader->shade(r, rec);
+    return rec.shader->shade(r, rec, lights);
   }
 
   vec3 unit_direction = unit_vector(r.direction());
