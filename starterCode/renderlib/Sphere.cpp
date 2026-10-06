@@ -1,6 +1,5 @@
 #include "Sphere.h"
 
-
 Sphere::Sphere(point3 sphereCenter, double sphereRadius, shared_ptr<Shader> shader) : Shape(shader), center(sphereCenter), radius(sphereRadius) {}
 
 bool Sphere::intersect(const ray &r, double ray_tmin, double ray_tmax, HitRecord &rec) const

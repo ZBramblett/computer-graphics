@@ -7,3 +7,8 @@ vec3 PointLight::calculateLightDirection(point3 p) const
 {
   return unit_vector(position - p);
 }
+
+double PointLight::getDistance(point3 p) const
+{
+  return (position - p).length();
+}

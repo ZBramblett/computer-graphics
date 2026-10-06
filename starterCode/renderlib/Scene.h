@@ -14,6 +14,7 @@ public:
   shared_ptr<Camera> getCamera() const;
   const ShapeList &getWorld() const;
   void renderScene(Framebuffer &fb) const;
+  bool isOccluded(shared_ptr<Light> light, const HitRecord &rec) const;
 
 private:
   shared_ptr<Camera> camera;

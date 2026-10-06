@@ -35,11 +35,18 @@ void Scene::addLight(shared_ptr<Light> light)
   lights.push_back(light);
 }
 
+bool Scene::isOccluded(shared_ptr<Light> light, const HitRecord &rec) const
+{
+  HitRecord occRec;
+  ray r(rec.p, light->calculateLightDirection(rec.p));
+  return (world.intersect(r, 0.0001, light->getDistance(rec.p), occRec));
+}
+
 color Scene::findRayColor(const ray &r) const
 {
   HitRecord rec;
   if (world.intersect(r, 0, infinity, rec)) {
-    return rec.shader->shade(r, rec, lights);
+    return rec.shader->shade(r, rec, lights, *this);
   }
 
   vec3 unit_direction = unit_vector(r.direction());
