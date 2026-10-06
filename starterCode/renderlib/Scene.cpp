@@ -45,7 +45,7 @@ bool Scene::isOccluded(shared_ptr<Light> light, const HitRecord &rec) const
 color Scene::findRayColor(const ray &r) const
 {
   HitRecord rec;
-  if (world.intersect(r, 0, infinity, rec)) {
+  if (world.intersect(r, 0.0001, infinity, rec)) {
     return rec.shader->shade(r, rec, lights, *this);
   }
 
