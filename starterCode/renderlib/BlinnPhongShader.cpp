@@ -19,6 +19,7 @@ color BlinnPhongShader::shade(const ray &r, const HitRecord &rec, const std::vec
     double spec = std::pow(std::max(0.0, dot(rec.normal, halfDir)), shininess);
     result += light->getRadiance() * (diff * baseColor + spec * specularColor);
   }
+
   for (int i = 0; i < 3; ++i) {
     result[i] = std::min(1.0, result[i]);
   }

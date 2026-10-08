@@ -19,6 +19,8 @@ const ShapeList &Scene::getWorld() const
 {
   return world;
 }
+
+// Modify to get anti-aliasing (Do the grid one from the slides)
 void Scene::renderScene(Framebuffer &fb) const
 {
   for (int x = 0; x < fb.getWidth(); ++x) {
