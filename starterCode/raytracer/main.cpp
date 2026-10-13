@@ -14,7 +14,7 @@
 
 int main()
 {
-  Framebuffer fb(2000, 2000);
+  Framebuffer fb(200, 200);
   vec3 viewdir(0, -0.3, -1);
   point3 origin(0, 2, 1);
   double imagePlaneWidth = 1;

@@ -25,10 +25,20 @@ void Scene::renderScene(Framebuffer &fb) const
 {
   for (int x = 0; x < fb.getWidth(); ++x) {
     for (int y = 0; y < fb.getHeight(); ++y) {
-      ray r;
-      camera->generateRay(x, y, r);
-      color pixel_color = findRayColor(r);
-      fb.setPixelColor(x, y, pixel_color);
+      color c(0.0, 0.0, 0.0);
+      int rpp_Nsquare = 4;// number of rays per pixel in each direction
+
+      for (int p = 0; p < rpp_Nsquare; ++p) {
+        for (int q = 0; q < rpp_Nsquare; ++q) {
+          double pOffset = (p + randomOffset()) / rpp_Nsquare;
+          double qOffset = (q + randomOffset()) / rpp_Nsquare;
+          ray r;
+          camera->generateRay(x + pOffset, y + qOffset, r);
+          c += findRayColor(r);
+        }
+      }
+      c /= (rpp_Nsquare * rpp_Nsquare);
+      fb.setPixelColor(x, y, c);
     }
   }
 }
