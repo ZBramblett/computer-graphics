@@ -26,7 +26,7 @@ void Scene::renderScene(Framebuffer &fb) const
   for (int x = 0; x < fb.getWidth(); ++x) {
     for (int y = 0; y < fb.getHeight(); ++y) {
       color c(0.0, 0.0, 0.0);
-      int rpp_Nsquare = 4;// number of rays per pixel in each direction
+      int rpp_Nsquare = 10;// number of rays per pixel in each direction
 
       for (int p = 0; p < rpp_Nsquare; ++p) {
         for (int q = 0; q < rpp_Nsquare; ++q) {
@@ -65,7 +65,8 @@ color Scene::findRayColor(const ray &r, int depth) const
     return rec.shader->shade(r, rec, lights, *this, depth);
   }
 
-  vec3 unit_direction = unit_vector(r.direction());
-  auto a = 0.5 * (unit_direction.y() + 1.0);
-  return (1.0 - a) * color(1.0, 1.0, 1.0) + a * color(0.5, 0.7, 1.0);
+  // vec3 unit_direction = unit_vector(r.direction());
+  // auto a = 0.5 * (unit_direction.y() + 1.0);
+  // return (1.0 - a) * color(1.0, 1.0, 1.0) + a * color(0.5, 0.7, 1.0);
+  return color(.5, .7, 1.0);
 }

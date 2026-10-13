@@ -9,49 +9,80 @@
 #include "SolidColorShader.h"
 #include "LambertianShader.h"
 #include "BlinnPhongShader.h"
+#include "NormalShader.h"
 #include "PointLight.h"
 #include "MirrorShader.h"
 
 
 int main()
 {
-  Framebuffer fb(1000, 1000);
-  vec3 viewdir(0, -0.3, -1);
-  point3 origin(0, 2, 1);
-  double imagePlaneWidth = 1;
-  double focalLength = 1;
+  Framebuffer fb(500, 500);
+  vec3 viewdir(0, -0.4, -1);
+  point3 origin(0, 3, 3);
+  double imagePlaneWidth = .5;
+  double focalLength = .4;
   auto p = make_shared<PerspectiveCamera>(viewdir, origin, fb.getHeight(), fb.getWidth(), imagePlaneWidth, focalLength);
 
+  // Lights
+  auto Light1 = make_shared<PointLight>(color(.7, .6, .45), 1.0, point3(-5, 8, 5));
+  auto Light2 = make_shared<PointLight>(color(.35, .45, .7), 1.0, point3(6, 6, 2));
 
-  // colors & shaders
-  color sphereColor(0, 0.8, 0.8);
-  color blackLightColor = normalizeColor(color(93, 12, 237));
+  // Floor
+  auto diffuseGrey = make_shared<LambertianShader>(color(.6, .6, .6));
 
-  auto matte = make_shared<LambertianShader>(sphereColor);
-  auto satin = make_shared<BlinnPhongShader>(sphereColor, color(0.6, 0.6, 0.6), 16);
-  auto glossy = make_shared<BlinnPhongShader>(sphereColor, color(1, 1, 1), 200);
-  auto mirror = make_shared<MirrorShader>(color(1, 1, 1));
-  auto glossy2 = make_shared<BlinnPhongShader>(sphereColor, color(1, 1, 1), 200);
+  auto ground1 = make_shared<Triangle>(point3(-50, 0, 50), point3(50, 0, 50), point3(50, 0, -50), diffuseGrey);
+  auto ground2 = make_shared<Triangle>(point3(-50, 0, 50), point3(50, 0, -50), point3(-50, 0, -50), diffuseGrey);
 
-  auto floorShader = make_shared<LambertianShader>(color(0.5, 0.5, 0.5));
-  // lights
-  auto warmLight = make_shared<PointLight>(color(1.0, 0.85, 0.7), 0.8, point3(4, 4, 0));
-  auto coolLight = make_shared<PointLight>(color(0.4, 0.6, 1.0), 0.35, point3(-4, 2, -1));
-  auto backLight = make_shared<PointLight>(blackLightColor, 1, point3(0, 1, -5));
+  // Mirror Wall
+  auto mirrorShader = make_shared<MirrorShader>(color(1, 1, 1));
+  auto wall1 = make_shared<Triangle>(point3(-4, 0, -6), point3(4, 0, -6), point3(4, 4, -6), mirrorShader);
+  auto wall2 = make_shared<Triangle>(point3(-4, 0, -6), point3(4, 4, -6), point3(-4, 5, -6), mirrorShader);
+
+  // Floating Triangle
+  auto diffuseYellow = make_shared<LambertianShader>(color(.9, .8, .1));
+  auto floatingTriangle = make_shared<Triangle>(point3(.9, 1.4, -0.6), point3(1.9, 1.4, -0.6), point3(1.4, 2.2, -1.1), diffuseYellow);
+
+  // Spheres
+  auto diffuseGreen = make_shared<LambertianShader>(color(.2, .8, .2));
+  auto greenSphere = make_shared<Sphere>(point3(-2, .8, -3), .8, diffuseGreen);
+
+  auto diffuseRed = make_shared<BlinnPhongShader>(color(.8, .1, .1), color(1, 1, 1), 64.0);
+  auto redSphere = make_shared<Sphere>(point3(-1.1, .6, -1.2), .6, diffuseRed);
+
+  auto normalShader = make_shared<NormalShader>();
+  auto normalSphere = make_shared<Sphere>(point3(0, .9, -3.5), .9, normalShader);
+
+  auto diffuseBlue = make_shared<BlinnPhongShader>(color(.1, .2, .8), color(1, 1, 1), 16.0);
+  auto blueSphere = make_shared<Sphere>(point3(.3, .45, -1.6), .45, diffuseBlue);
+
+  auto mirrorSphere = make_shared<Sphere>(point3(2, 1, -3), 1.0, mirrorShader);
+  auto frontMirrorSphere = make_shared<Sphere>(point3(1.5, .5, .3), .5, mirrorShader);
+
+  // Behind camera
+  auto diffuseOrange = make_shared<BlinnPhongShader>(color(.95, .5, .1), color(1, 1, 1), 32.0);
+  auto orangeSphere = make_shared<Sphere>(point3(0.3, 1, 5), 1, diffuseOrange);
+
+  auto diffusePurple = make_shared<LambertianShader>(color(.6, .2, .8));
+  auto purpleSphere = make_shared<Sphere>(point3(2.4, .8, 4.8), 0.8, diffusePurple);
+
 
   Scene scene;
   scene.setCamera(p);
-  scene.addLight(warmLight);
-  scene.addLight(coolLight);
-  scene.addLight(backLight);
-  // floor
-  scene.addShape(make_shared<Sphere>(point3(0, -100.5, -5), 100, floorShader));
-
-  scene.addShape(make_shared<Sphere>(point3(-1.2, 0, -4), 0.5, matte));
-  scene.addShape(make_shared<Sphere>(point3(0, 0, -4), 0.5, mirror));
-  scene.addShape(make_shared<Sphere>(point3(1.2, 0, -4), 0.5, glossy));
-  scene.addShape(make_shared<Sphere>(point3(0, 5, -4), 2, glossy2));
-
+  scene.addLight(Light1);
+  scene.addLight(Light2);
+  scene.addShape(ground1);
+  scene.addShape(ground2);
+  scene.addShape(wall1);
+  scene.addShape(wall2);
+  scene.addShape(floatingTriangle);
+  scene.addShape(greenSphere);
+  scene.addShape(redSphere);
+  scene.addShape(normalSphere);
+  scene.addShape(blueSphere);
+  scene.addShape(mirrorSphere);
+  scene.addShape(frontMirrorSphere);
+  scene.addShape(orangeSphere);
+  scene.addShape(purpleSphere);
 
   scene.renderScene(fb);
 
