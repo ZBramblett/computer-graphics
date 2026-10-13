@@ -23,6 +23,7 @@ const ShapeList &Scene::getWorld() const
 // Modify to get anti-aliasing (Do the grid one from the slides)
 void Scene::renderScene(Framebuffer &fb) const
 {
+#pragma omp parallel for
   for (int x = 0; x < fb.getWidth(); ++x) {
     for (int y = 0; y < fb.getHeight(); ++y) {
       color c(0.0, 0.0, 0.0);
