@@ -4,7 +4,7 @@
 
 BlinnPhongShader::BlinnPhongShader(color baseColor, color specularColor, double shininess) : Shader(baseColor), specularColor(specularColor), shininess(shininess) {}
 
-color BlinnPhongShader::shade(const ray &r, const HitRecord &rec, const std::vector<shared_ptr<Light>> &lights, const Scene &scene) const
+color BlinnPhongShader::shade(const ray &r, const HitRecord &rec, const std::vector<shared_ptr<Light>> &lights, const Scene &scene, int depth) const
 {
   vec3 viewDir = unit_vector(-r.direction());
   color result = color(0, 0, 0);

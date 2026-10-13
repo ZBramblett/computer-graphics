@@ -30,6 +30,8 @@ add_library(renderlib STATIC
     LambertianShader.cpp
     BlinnPhongShader.h
     BlinnPhongShader.cpp
+    MirrorShader.h
+    MirrorShader.cpp
 )
 
 

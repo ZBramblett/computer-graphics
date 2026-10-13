@@ -15,10 +15,10 @@ public:
   const ShapeList &getWorld() const;
   void renderScene(Framebuffer &fb) const;
   bool isOccluded(shared_ptr<Light> light, const HitRecord &rec) const;
+  color findRayColor(const ray &r, int depth) const;
 
 private:
   shared_ptr<Camera> camera;
   ShapeList world;
   std::vector<shared_ptr<Light>> lights;
-  color findRayColor(const ray &r) const;
 };

@@ -34,7 +34,7 @@ void Scene::renderScene(Framebuffer &fb) const
           double qOffset = (q + randomOffset()) / rpp_Nsquare;
           ray r;
           camera->generateRay(x + pOffset, y + qOffset, r);
-          c += findRayColor(r);
+          c += findRayColor(r, 5);
         }
       }
       c /= (rpp_Nsquare * rpp_Nsquare);
@@ -54,11 +54,15 @@ bool Scene::isOccluded(shared_ptr<Light> light, const HitRecord &rec) const
   return (world.intersect(r, 0.0001, light->getDistance(rec.p), occRec));
 }
 
-color Scene::findRayColor(const ray &r) const
+color Scene::findRayColor(const ray &r, int depth) const
 {
+
+  if (depth <= 0) {
+    return color(0, 0, 0);
+  }
   HitRecord rec;
   if (world.intersect(r, 0.0001, infinity, rec)) {
-    return rec.shader->shade(r, rec, lights, *this);
+    return rec.shader->shade(r, rec, lights, *this, depth);
   }
 
   vec3 unit_direction = unit_vector(r.direction());
