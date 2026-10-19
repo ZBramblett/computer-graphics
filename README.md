@@ -1,6 +1,7 @@
 # Preface
 This is a overall directory for all my computer graphics. 
-My raytracing assignments are currently located in the startercode folder
+My raytracing assignments are currently located in the *startercode* folder
+If you are looking for my actual project and ended up here LOOK THERE INSTEAD
 
 ## TLDR (You already have everything setup and just want to run it)
 Do the following steps:
