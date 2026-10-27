@@ -1,3 +1,21 @@
+Quick Start Guide if you already have an environment setup for this stuff (You probably do because you are grading this!!!)
+
+```
+Go to the starterCode Directory
+run cmake --preset=default
+go to buildVCPkg
+go to raytracer
+Should be in something like /starterCode/buildVCPkg
+type cmake --build .
+Should get an executable called image that shows up in the raytracer folder!
+Run it and a PNG will pop up called generated image, MAGIC!!
+Click PNG and view Image!!!
+If any of the above stuff doesn't make sense or work, you probably aren't the professor or the TA who is grading this, if this is the case, How did you find this? Also see detailed instructions below on setting stuff up
+```
+
+
+Below are detailed instructions on how to set up the build environment. (I did not write these instructions credit goes to CS4212 / Peter Willemsen)
+
 This project uses CMake and vcpkg for managing C++ dependencies. It serves as a simple example to test your build setup before we get into more complicted code.
 
 ## Building Using CMake Presets
