@@ -37,6 +37,8 @@ add_library(renderlib STATIC
     SceneParser_JSON.h
     ISceneLoader.h
     SceneParser_JSON.cpp
+    BoundingBox.h
+    BoundingBox.cpp
 )
 
 
