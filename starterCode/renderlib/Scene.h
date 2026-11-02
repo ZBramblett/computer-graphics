@@ -13,7 +13,7 @@ public:
   void addLight(shared_ptr<Light> light);
   shared_ptr<Camera> getCamera() const;
   const ShapeList &getWorld() const;
-  void renderScene(Framebuffer &fb) const;
+  void renderScene(Framebuffer &fb, int rpp) const;
   bool isOccluded(shared_ptr<Light> light, const HitRecord &rec) const;
   color findRayColor(const ray &r, int depth) const;
 

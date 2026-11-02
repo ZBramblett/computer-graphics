@@ -12,6 +12,7 @@ int main(int argc, char *argv[])
   sivelab::GraphicsArgs args;
   args.width = 500;
   args.height = 500;
+  args.rpp = 1;
   args.process(argc, argv);
   Framebuffer fb(args.width, args.height);
   Scene scene;
@@ -22,8 +23,8 @@ int main(int argc, char *argv[])
   std::string filename = args.inputFileName;
   parser.parseFileData(filename);
 
-
-  scene.renderScene(fb);
+  printf("Rendering... please stand by");
+  scene.renderScene(fb, args.rpp);
 
   std::string outName = args.outputFileName.empty() ? "default_image_name.png" : args.outputFileName;
   fb.exportToPNG(outName);

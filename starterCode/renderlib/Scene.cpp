@@ -1,6 +1,7 @@
 #include "Scene.h"
 #include "rtweekend.h"
 #include "Shader.h"
+#include <algorithm>
 
 void Scene::setCamera(shared_ptr<Camera> camera)
 {
@@ -21,13 +22,15 @@ const ShapeList &Scene::getWorld() const
 }
 
 // Modify to get anti-aliasing (Do the grid one from the slides)
-void Scene::renderScene(Framebuffer &fb) const
+void Scene::renderScene(Framebuffer &fb, int rpp) const
 {
+  // the grid is N x N, so use the closest whole N to get about rpp rays per pixel
+  int rpp_Nsquare = static_cast<int>(std::round(std::sqrt(std::max(rpp, 1))));
+
 #pragma omp parallel for
   for (int x = 0; x < fb.getWidth(); ++x) {
     for (int y = 0; y < fb.getHeight(); ++y) {
       color c(0.0, 0.0, 0.0);
-      int rpp_Nsquare = 10;// number of rays per pixel in each direction
 
       for (int p = 0; p < rpp_Nsquare; ++p) {
         for (int q = 0; q < rpp_Nsquare; ++q) {
