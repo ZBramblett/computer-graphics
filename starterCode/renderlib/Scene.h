@@ -4,6 +4,7 @@
 #include "ShapeList.h"
 #include "Framebuffer.h"
 #include "Light.h"
+#include "BVHNode.h"
 
 class Scene
 {
@@ -16,9 +17,11 @@ public:
   void renderScene(Framebuffer &fb, int rpp) const;
   bool isOccluded(shared_ptr<Light> light, const HitRecord &rec) const;
   color findRayColor(const ray &r, int depth) const;
+  void buildBVH();
 
 private:
   shared_ptr<Camera> camera;
   ShapeList world;
   std::vector<shared_ptr<Light>> lights;
+  std::shared_ptr<Shape> root;
 };

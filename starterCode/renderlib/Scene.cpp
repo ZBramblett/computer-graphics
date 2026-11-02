@@ -74,3 +74,13 @@ color Scene::findRayColor(const ray &r, int depth) const
   // return (1.0 - a) * color(1.0, 1.0, 1.0) + a * color(0.5, 0.7, 1.0);
   return color(.5, .7, 1.0);
 }
+
+void Scene::buildBVH()
+{
+  if (world.getObjects().empty()) {
+    return;
+  }
+  root = std::make_shared<BVHNode>(world.getObjects(), 0);
+  world.clear();
+  world.add(root);
+}

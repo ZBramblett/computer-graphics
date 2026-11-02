@@ -17,15 +17,15 @@ BVHNode::BVHNode(std::vector<std::shared_ptr<Shape>> shapes, int AXIS)
     std::sort(shapes.begin(), shapes.end(), [AXIS](const std::shared_ptr<Shape> a, const std::shared_ptr<Shape> b) {
       return (a->_center()[AXIS] < b->_center()[AXIS]);
     });
+
+    std::vector<std::shared_ptr<Shape>> leftside(shapes.begin(), shapes.begin() + (N / 2));
+    std::vector<std::shared_ptr<Shape>> rightside(shapes.begin() + (N / 2), shapes.end());
+
+    leftChild = std::make_shared<BVHNode>(leftside, (AXIS + 1) % 3);
+    rightChild = std::make_shared<BVHNode>(rightside, (AXIS + 1) % 3);
+
+    bbox = mergeBoundingBoxes(leftChild->boundingBox(), rightChild->boundingBox());
   }
-
-  std::vector<std::shared_ptr<Shape>> leftside(shapes.begin(), shapes.begin() + (N / 2));
-  std::vector<std::shared_ptr<Shape>> rightside(shapes.begin() + (N / 2), shapes.end());
-
-  leftChild = std::make_shared<BVHNode>(leftside, (AXIS + 1) % 3);
-  rightChild = std::make_shared<BVHNode>(rightside, (AXIS + 1) % 3);
-
-  bbox = mergeBoundingBoxes(leftChild->boundingBox(), rightChild->boundingBox());
 }
 
 bool BVHNode::intersect(const ray &r, double ray_tmin, double ray_tmax, HitRecord &rec) const

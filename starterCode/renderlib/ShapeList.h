@@ -19,6 +19,7 @@ public:
   bool intersect(const ray &r, double ray_tmin, double ray_tmax, HitRecord &rec) const override;
   BoundingBox boundingBox() const override;
   point3 _center() const override;
+  const std::vector<shared_ptr<Shape>> &getObjects() const;
 
 protected:
   BoundingBox bbox;

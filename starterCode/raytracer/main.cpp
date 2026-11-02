@@ -22,8 +22,7 @@ int main(int argc, char *argv[])
 
   std::string filename = args.inputFileName;
   parser.parseFileData(filename);
-
-  printf("Rendering... please stand by");
+  scene.buildBVH();
   scene.renderScene(fb, args.rpp);
 
   std::string outName = args.outputFileName.empty() ? "default_image_name.png" : args.outputFileName;
