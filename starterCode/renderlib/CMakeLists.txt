@@ -39,6 +39,8 @@ add_library(renderlib STATIC
     SceneParser_JSON.cpp
     BoundingBox.h
     BoundingBox.cpp
+    BVHNode.h
+    BVHNode.cpp
 )
 
 
