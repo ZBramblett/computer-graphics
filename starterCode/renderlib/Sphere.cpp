@@ -1,6 +1,9 @@
 #include "Sphere.h"
 
-Sphere::Sphere(point3 sphereCenter, double sphereRadius, shared_ptr<Shader> shader) : Shape(shader), center(sphereCenter), radius(sphereRadius) {}
+Sphere::Sphere(point3 sphereCenter, double sphereRadius, shared_ptr<Shader> shader) : Shape(shader), center(sphereCenter), radius(sphereRadius) {
+  auto rvec = vec3(radius, radius, radius);
+  bbox = BoundingBox(center - rvec, center + rvec);
+}
 
 bool Sphere::intersect(const ray &r, double ray_tmin, double ray_tmax, HitRecord &rec) const
 {
@@ -37,4 +40,12 @@ bool Sphere::intersect(const ray &r, double ray_tmin, double ray_tmax, HitRecord
   rec.setFaceNormal(r, (rec.p - center) / radius);
   rec.shader = shader;
   return true;
+}
+
+BoundingBox Sphere::boundingBox() const{
+  return bbox;
+}
+
+point3 Sphere::_center() const{
+  return center;
 }

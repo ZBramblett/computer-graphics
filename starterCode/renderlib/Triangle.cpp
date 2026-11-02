@@ -1,6 +1,15 @@
 #include "Triangle.h"
 
-Triangle::Triangle(point3 a, point3 b, point3 c, shared_ptr<Shader> shader) : Shape(shader), a(a), b(b), c(c) {}
+Triangle::Triangle(point3 a, point3 b, point3 c, shared_ptr<Shader> shader) : Shape(shader), a(a), b(b), c(c) {
+  center = (a + b + c) / 3;
+  bbox = BoundingBox(a,a);
+  bbox.update(b);
+  bbox.update(c);
+  double e = .0001;
+  bbox.llb = bbox.llb - vec3(e,e,e);
+  bbox.urf = bbox.urf + vec3(e,e,e);
+
+}
 
 
 bool Triangle::intersect(const ray &r, double ray_tmin, double ray_tmax, HitRecord &rec) const
@@ -43,4 +52,10 @@ bool Triangle::intersect(const ray &r, double ray_tmin, double ray_tmax, HitReco
     return true;
   }
   return false;
+}
+
+BoundingBox Triangle::boundingBox() const {return bbox;}
+
+point3 Triangle::_center() const{
+  return center;
 }

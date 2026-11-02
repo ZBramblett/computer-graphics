@@ -1,6 +1,6 @@
 #include "ShapeList.h"
 
-ShapeList::ShapeList(shared_ptr<Shape> object) { add(object); }
+ShapeList::ShapeList(shared_ptr<Shape> object) { add(object);}
 
 void ShapeList::clear()
 {
@@ -26,4 +26,22 @@ bool ShapeList::intersect(const ray &r, double ray_tmin, double ray_tmax, HitRec
     }
   }
   return hit_anything;
+}
+
+BoundingBox ShapeList::boundingBox() const{
+  if (objects.empty()){
+    return BoundingBox();
+  }
+  BoundingBox bbox = objects[0] -> boundingBox();
+
+  for (const auto& object : objects) {
+    bbox.update(object -> boundingBox().llb);
+    bbox.update(object -> boundingBox().urf);
+  }
+  return bbox;
+}
+
+point3 ShapeList::_center() const{
+  BoundingBox bbox = boundingBox();
+  return (bbox.llb + bbox.urf) / 2;
 }
