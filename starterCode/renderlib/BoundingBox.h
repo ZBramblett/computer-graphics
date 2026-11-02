@@ -7,9 +7,8 @@ class BoundingBox{
 public:
     BoundingBox() = default;
     BoundingBox(point3 llb, point3 urf);
-
-    BoundingBox merge(const BoundingBox& box) const;
-    bool hit(const ray&, double t0, double t1) const;
+    void update(const point3 &p);
+    bool hit(const ray& r, double ray_tmin, double ray_tmax) const;
 
     point3 llb;
     point3 urf;
