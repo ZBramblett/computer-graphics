@@ -44,6 +44,7 @@ int main(void)
     return -1;
   }
 
+
   /* Make the window's context current */
   glfwMakeContextCurrent(window);
 
@@ -71,9 +72,19 @@ int main(void)
   // by the window frame.
   //
   // The ortho parameters, in order: left, right, bottom, top, zNear, zFar
-  float halfWidth = 15.0 / 2.0;
-  float halfHeight = halfWidth / aspectRatio;
-  glm::mat4 projectionMatrix = glm::ortho(-halfWidth, halfWidth, -halfHeight, halfHeight, -10.0f, 10.0f);
+  float halfWidth = 15.0 / 2;
+  float halfHeight = halfWidth;
+
+  float left = -halfWidth;
+  float right = halfWidth;
+
+  float bottom = -halfHeight;
+  float top = halfHeight;
+
+  float near = 5.0f;
+  float far = -5.0f;
+
+  glm::mat4 M_ortho = glm::ortho(-halfWidth, halfWidth, -halfHeight, halfHeight, near, far);
 
   GLint major_version;
   glGetIntegerv(GL_MAJOR_VERSION, &major_version);
@@ -86,7 +97,7 @@ int main(void)
 
   // this is the actual triangle data that will be copied to the gpu memory
 
-  std::vector<float> host_VertexBuffer{ 1.0f, 1.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, -1.0f, 0.0f };
+  std::vector<float> host_VertexBuffer{ -3.0f, -3.0f, 0.0f, 3.0f, -3.0f, 0.0f, 0.0f, 3.0f, 0.0f };
 
   int numBytes = host_VertexBuffer.size() * sizeof(float);
 
@@ -97,7 +108,7 @@ int main(void)
 
   glBindBuffer(GL_ARRAY_BUFFER, m_triangleVBO[1]);
 
-  std::vector<float> host_ColorBuffer{ 0.831f, 0.686f, 0.216f,0.067f, 0.459f, 0.067f, 0.0f, .75f, 0.80f };
+  std::vector<float> host_ColorBuffer{ 0.831f, 0.686f, 0.216f, 0.067f, 0.459f, 0.067f, 0.0f, .75f, 0.80f };
 
   glBufferData(GL_ARRAY_BUFFER, host_ColorBuffer.size() * sizeof(float), host_ColorBuffer.data(), GL_STATIC_DRAW);
 
@@ -129,9 +140,16 @@ int main(void)
 
   // Create a shader using my GLSLObject class
   sivelab::GLSLObject shader;
-  shader.addShader("vertexShader_passthrough.glsl", sivelab::GLSLObject::VERTEX_SHADER);
+  shader.addShader("vertexShader_withMatrixTransformation.glsl", sivelab::GLSLObject::VERTEX_SHADER);
   shader.addShader("fragmentShader_passthrough.glsl", sivelab::GLSLObject::FRAGMENT_SHADER);
   shader.createProgram();
+
+  GLuint projMatrixID, viewMatrixID;
+  projMatrixID = shader.createUniform("projMatrix");
+  viewMatrixID = shader.createUniform("viewMatrix");
+
+  glm::vec3 m_pos(0, 0, 0), m_viewDir(0, 0, -1);
+  glm::vec3 m_U(1, 0, 0), m_V(0, 1, 0), m_W(0, 0, 1);
 
   double timeDiff = 0.0, startFrameTime = 0.0, endFrameTime = 0.0;
 
@@ -145,11 +163,19 @@ int main(void)
     // background color)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // create the view matrix from out camera data
+    glm::mat4 M_view = glm::lookAt(m_pos, m_pos - m_W, m_V);
+
     /* Render your objects here */
     shader.activate();
+
+    glUniformMatrix4fv(projMatrixID, 1, GL_FALSE, glm::value_ptr(M_ortho));
+    glUniformMatrix4fv(viewMatrixID, 1, GL_FALSE, glm::value_ptr(M_view));
+
     glBindVertexArray(m_VAO);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glBindVertexArray(0);
+
     shader.deactivate();
 
     // Swap the front and back buffers
@@ -158,11 +184,23 @@ int main(void)
     /* Poll for and process events */
     glfwPollEvents();
 
+    float moveRatePerFrame = 0.05;
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+      m_pos = m_pos + m_V * moveRatePerFrame;
+    } else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+      m_pos = m_pos - m_U * moveRatePerFrame;
+    } else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+      m_pos = m_pos - m_V * moveRatePerFrame;
+    } else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+      m_pos = m_pos + m_U * moveRatePerFrame;
+    } else if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+      m_pos = m_pos + m_W * moveRatePerFrame;
+    } else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
+      m_pos = m_pos - m_W * moveRatePerFrame;
+    }
     if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS) {
       std::cout << "fps: " << 1.0 / timeDiff << std::endl;
-    }
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-      glfwSetWindowShouldClose(window, 1);
     }
   }
 
