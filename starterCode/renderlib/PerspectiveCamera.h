@@ -8,6 +8,8 @@ public:
   PerspectiveCamera(vec3 viewdir, point3 origin, int height, int width, double imagePlaneWidth, double focalLength);
   void generateRay(double i, double j, ray &myRay) const override;
 
+  double getFocalLength() const { return focalLength; }
+
 private:
   double focalLength;
 };

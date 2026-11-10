@@ -15,6 +15,8 @@
 
 #include "PerspectiveCamera.h"
 
+// convert ray tracer vec3 (doubles) to glm::vec3 (floats)
+glm::vec3 toGlm(const vec3 &v) { return glm::vec3(v.x(), v.y(), v.z()); }
 
 int CheckGLErrors(const char *s)
 {
@@ -72,9 +74,6 @@ int main(void)
   glfwGetFramebufferSize(window, &fb_width, &fb_height);
   glViewport(0, 0, fb_width, fb_height);
 
-  // glm::vec3 m_pos(0, 0, 10), m_viewDir(0, 0, -1);
-  // glm::vec3 m_U(1, 0, 0), m_V(0, 1, 0), m_W(0, 0, 1);
-
   // setup Camera
   vec3 viewDir(0, 0, -1);
   vec3 origin(0, 0, 10);
@@ -83,25 +82,9 @@ int main(void)
 
   auto pCam = std::make_shared<PerspectiveCamera>(viewDir, origin, fb_height, fb_width, imagePlaneWidth, focalLength);
 
-  // Need to set a projection matrix that fits the aspect ratio set
-  // by the window frame.
-  //
-  // The ortho parameters, in order: left, right, bottom, top, zNear, zFar
-  float halfWidth = 15.0 / 2;
-  float halfHeight = halfWidth;
-
-  float left = -halfWidth;
-  float right = halfWidth;
-
-  float bottom = -halfHeight;
-  float top = halfHeight;
-
-  float near = 5.0f;
-  float far = -5.0f;
-
-  glm::mat4 M_ortho = glm::ortho(left, right, bottom, top, near, far);
-
-  glm::mat4 perspMat = glm::perspective(glm::radians(45.0f), 1000.0f / 1000.0f, 0.1f, 100.0f);
+  // Projection matrix from the camera's image plane: near plane = image plane
+  float farPlane = 100.0f;
+  glm::mat4 perspMat = glm::frustum<float>(pCam->getLeft(), pCam->getRight(), pCam->getBottom(), pCam->getTop(), pCam->getFocalLength(), farPlane);
 
 
   GLint major_version;
@@ -167,10 +150,15 @@ int main(void)
   viewMatrixID = shader.createUniform("viewMatrix");
   modelMatrixID = shader.createUniform("modelMatrix");
 
-  glm::vec3 m_pos(0, 0, 10), m_viewDir(0, 0, -1);
-  glm::vec3 m_U(1, 0, 0), m_V(0, 1, 0), m_W(0, 0, 1);
+  // seed local copies from the camera; m_pos changes with keyboard movement
+  glm::vec3 m_pos = toGlm(pCam->getOrigin());
+  glm::vec3 m_U = toGlm(pCam->getU());
+  glm::vec3 m_V = toGlm(pCam->getV());
+  glm::vec3 m_W = toGlm(pCam->getW());
 
-  double timeDiff = 0.0, startFrameTime = 0.0, endFrameTime = 0.0;
+
+  double timeDiff = 0.0,
+         startFrameTime = 0.0, endFrameTime = 0.0;
 
   /* Loop until the user closes the window */
   while (!glfwWindowShouldClose(window)) {
@@ -192,7 +180,6 @@ int main(void)
     glm::mat4 modelTransform = glm::mat4(1.0);
     modelTransform = glm::rotate(modelTransform, rotAngle, glm::vec3(0, 1, 0));
 
-    // glUniformMatrix4fv(projMatrixID, 1, GL_FALSE, glm::value_ptr(M_ortho));
     glUniformMatrix4fv(viewMatrixID, 1, GL_FALSE, glm::value_ptr(M_view));
     glUniformMatrix4fv(projMatrixID, 1, GL_FALSE, glm::value_ptr(perspMat));
     glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(modelTransform));
