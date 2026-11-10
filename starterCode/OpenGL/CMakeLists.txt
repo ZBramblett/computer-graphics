@@ -7,6 +7,7 @@ add_executable (glfwExample
 
 target_link_libraries (glfwExample PRIVATE GLEW::GLEW)
 target_link_libraries (glfwExample PRIVATE glfw)
+target_link_libraries (glfwExample PRIVATE renderlib)
 
 if(APPLE)
     target_link_libraries(glfwExample PRIVATE

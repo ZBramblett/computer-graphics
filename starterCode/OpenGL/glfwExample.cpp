@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <vector>
+#include <memory>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -11,6 +12,9 @@
 #include "glm/gtc/type_ptr.hpp"
 
 #include "GLSL.h"
+
+#include "PerspectiveCamera.h"
+
 
 int CheckGLErrors(const char *s)
 {
@@ -68,6 +72,17 @@ int main(void)
   glfwGetFramebufferSize(window, &fb_width, &fb_height);
   glViewport(0, 0, fb_width, fb_height);
 
+  // glm::vec3 m_pos(0, 0, 10), m_viewDir(0, 0, -1);
+  // glm::vec3 m_U(1, 0, 0), m_V(0, 1, 0), m_W(0, 0, 1);
+
+  // setup Camera
+  vec3 viewDir(0, 0, -1);
+  vec3 origin(0, 0, 10);
+  double imagePlaneWidth = .5;
+  double focalLength = 1.0;
+
+  auto pCam = std::make_shared<PerspectiveCamera>(viewDir, origin, fb_height, fb_width, imagePlaneWidth, focalLength);
+
   // Need to set a projection matrix that fits the aspect ratio set
   // by the window frame.
   //
@@ -87,6 +102,7 @@ int main(void)
   glm::mat4 M_ortho = glm::ortho(left, right, bottom, top, near, far);
 
   glm::mat4 perspMat = glm::perspective(glm::radians(45.0f), 1000.0f / 1000.0f, 0.1f, 100.0f);
+
 
   GLint major_version;
   glGetIntegerv(GL_MAJOR_VERSION, &major_version);
@@ -146,9 +162,10 @@ int main(void)
   shader.addShader("fragmentShader_passthrough.glsl", sivelab::GLSLObject::FRAGMENT_SHADER);
   shader.createProgram();
 
-  GLuint projMatrixID, viewMatrixID;
+  GLuint projMatrixID, viewMatrixID, modelMatrixID;
   projMatrixID = shader.createUniform("projMatrix");
   viewMatrixID = shader.createUniform("viewMatrix");
+  modelMatrixID = shader.createUniform("modelMatrix");
 
   glm::vec3 m_pos(0, 0, 10), m_viewDir(0, 0, -1);
   glm::vec3 m_U(1, 0, 0), m_V(0, 1, 0), m_W(0, 0, 1);
@@ -171,9 +188,15 @@ int main(void)
     /* Render your objects here */
     shader.activate();
 
+    GLfloat rotAngle = static_cast<float>(glfwGetTime()) * glm::radians(90.0f);
+    glm::mat4 modelTransform = glm::mat4(1.0);
+    modelTransform = glm::rotate(modelTransform, rotAngle, glm::vec3(0, 1, 0));
+
     // glUniformMatrix4fv(projMatrixID, 1, GL_FALSE, glm::value_ptr(M_ortho));
     glUniformMatrix4fv(viewMatrixID, 1, GL_FALSE, glm::value_ptr(M_view));
     glUniformMatrix4fv(projMatrixID, 1, GL_FALSE, glm::value_ptr(perspMat));
+    glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(modelTransform));
+
 
     glBindVertexArray(m_VAO);
     glDrawArrays(GL_TRIANGLES, 0, 3);

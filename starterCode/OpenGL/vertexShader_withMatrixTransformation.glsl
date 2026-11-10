@@ -5,6 +5,7 @@ layout(location=1) in vec3 in_Color;
 
 uniform mat4 projMatrix;
 uniform mat4 viewMatrix;
+uniform mat4 modelMatrix;
 
 out vec3 Color;
 
