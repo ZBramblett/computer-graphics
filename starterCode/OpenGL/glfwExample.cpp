@@ -84,7 +84,9 @@ int main(void)
   float near = 5.0f;
   float far = -5.0f;
 
-  glm::mat4 M_ortho = glm::ortho(-halfWidth, halfWidth, -halfHeight, halfHeight, near, far);
+  glm::mat4 M_ortho = glm::ortho(left, right, bottom, top, near, far);
+
+  glm::mat4 perspMat = glm::perspective(glm::radians(45.0f), 1000.0f / 1000.0f, 0.1f, 100.0f);
 
   GLint major_version;
   glGetIntegerv(GL_MAJOR_VERSION, &major_version);
@@ -148,7 +150,7 @@ int main(void)
   projMatrixID = shader.createUniform("projMatrix");
   viewMatrixID = shader.createUniform("viewMatrix");
 
-  glm::vec3 m_pos(0, 0, 0), m_viewDir(0, 0, -1);
+  glm::vec3 m_pos(0, 0, 10), m_viewDir(0, 0, -1);
   glm::vec3 m_U(1, 0, 0), m_V(0, 1, 0), m_W(0, 0, 1);
 
   double timeDiff = 0.0, startFrameTime = 0.0, endFrameTime = 0.0;
@@ -169,8 +171,9 @@ int main(void)
     /* Render your objects here */
     shader.activate();
 
-    glUniformMatrix4fv(projMatrixID, 1, GL_FALSE, glm::value_ptr(M_ortho));
+    // glUniformMatrix4fv(projMatrixID, 1, GL_FALSE, glm::value_ptr(M_ortho));
     glUniformMatrix4fv(viewMatrixID, 1, GL_FALSE, glm::value_ptr(M_view));
+    glUniformMatrix4fv(projMatrixID, 1, GL_FALSE, glm::value_ptr(perspMat));
 
     glBindVertexArray(m_VAO);
     glDrawArrays(GL_TRIANGLES, 0, 3);
