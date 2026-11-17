@@ -1,8 +1,15 @@
 #version 330 core
 
 layout(location=0) out vec4 fragmentColor;
-in vec3 Color;
+
+uniform vec3 diffuseComponent;
+
+in vec4 normal;
+in vec4 lightDir;
+
 void main(void)
 {
-    fragmentColor = vec4(Color, 1);
+    float val = max(0.0, dot(normal, lightDir));
+    vec3 diffuseShading = vec3( diffuseComponent.r * val, diffuseComponent.g * val, diffuseComponent.b * val );
+    fragmentColor = vec4(diffuseShading, 1.0);
 }

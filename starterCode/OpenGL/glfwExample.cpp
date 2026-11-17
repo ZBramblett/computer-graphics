@@ -97,10 +97,15 @@ int main(void)
   glBindBuffer(GL_ARRAY_BUFFER, m_triangleVBO[0]);
 
   // this is the actual triangle data that will be copied to the gpu memory
+  glm::vec3 A = glm::vec3(-3.0f, -3.0f, 0.0f);
+  glm::vec3 B = glm::vec3(3.0f, -3.0f, 0.0f);
+  glm::vec3 C = glm::vec3(0.0f, 3.0f, 0.0f);
+
 
   std::vector<float> host_VertexBuffer{ -3.0f, -3.0f, 0.0f, 3.0f, -3.0f, 0.0f, 0.0f, 3.0f, 0.0f };
-
   int numBytes = host_VertexBuffer.size() * sizeof(float);
+
+  glm::vec3 triNormal = glm::normalize(glm::cross(B - A, C - A));
 
   // copy the numBytes from host_VerstexBUffer to the GPU and store in the currently bound VBO
 
@@ -109,9 +114,19 @@ int main(void)
 
   glBindBuffer(GL_ARRAY_BUFFER, m_triangleVBO[1]);
 
-  std::vector<float> host_ColorBuffer{ 0.831f, 0.686f, 0.216f, 0.067f, 0.459f, 0.067f, 0.0f, .75f, 0.80f };
+  std::vector<float> host_normalBuffer{
+    triNormal.x,
+    triNormal.y,
+    triNormal.z,
+    triNormal.x,
+    triNormal.y,
+    triNormal.z,
+    triNormal.x,
+    triNormal.y,
+    triNormal.z,
+  };
 
-  glBufferData(GL_ARRAY_BUFFER, host_ColorBuffer.size() * sizeof(float), host_ColorBuffer.data(), GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, host_normalBuffer.size() * sizeof(float), host_normalBuffer.data(), GL_STATIC_DRAW);
 
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -141,14 +156,18 @@ int main(void)
 
   // Create a shader using my GLSLObject class
   sivelab::GLSLObject shader;
-  shader.addShader("vertexShader_withMatrixTransformation.glsl", sivelab::GLSLObject::VERTEX_SHADER);
+  shader.addShader("vertexShader_PrepForPerFragment.glsl", sivelab::GLSLObject::VERTEX_SHADER);
   shader.addShader("fragmentShader_passthrough.glsl", sivelab::GLSLObject::FRAGMENT_SHADER);
   shader.createProgram();
 
-  GLuint projMatrixID, viewMatrixID, modelMatrixID;
+  GLuint projMatrixID, viewMatrixID, modelMatrixID, normalMatrixID, lightPosWorldID, diffuseComponentID;
   projMatrixID = shader.createUniform("projMatrix");
   viewMatrixID = shader.createUniform("viewMatrix");
   modelMatrixID = shader.createUniform("modelMatrix");
+  normalMatrixID = shader.createUniform("normalMatrix");
+  lightPosWorldID = shader.createUniform("lightPosWorld");
+  diffuseComponentID = shader.createUniform("diffuseComponent");
+
 
   // seed local copies from the camera; m_pos changes with keyboard movement
   glm::vec3 m_pos = toGlm(pCam->getOrigin());
@@ -159,6 +178,7 @@ int main(void)
 
   double timeDiff = 0.0,
          startFrameTime = 0.0, endFrameTime = 0.0;
+
 
   /* Loop until the user closes the window */
   while (!glfwWindowShouldClose(window)) {
@@ -176,13 +196,20 @@ int main(void)
     /* Render your objects here */
     shader.activate();
 
+    glm::vec4 lightPos(0.0f, 0.0f, 5.0f, 1.0f);
+    glm::vec3 diffuseComponent(0.0f, 0.8f, 0.8f);
+
     GLfloat rotAngle = static_cast<float>(glfwGetTime()) * glm::radians(90.0f);
     glm::mat4 modelTransform = glm::mat4(1.0);
     modelTransform = glm::rotate(modelTransform, rotAngle, glm::vec3(0, 1, 0));
+    glm::mat4 M_normal = glm::inverse(glm::transpose(modelTransform));
 
     glUniformMatrix4fv(viewMatrixID, 1, GL_FALSE, glm::value_ptr(M_view));
     glUniformMatrix4fv(projMatrixID, 1, GL_FALSE, glm::value_ptr(perspMat));
     glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(modelTransform));
+    glUniformMatrix4fv(normalMatrixID, 1, GL_FALSE, glm::value_ptr(M_normal));
+    glUniform4f(lightPosWorldID, lightPos.x, lightPos.y, lightPos.z, lightPos.w);
+    glUniform3f(diffuseComponentID, diffuseComponent.x, diffuseComponent.y, diffuseComponent.z);
 
 
     glBindVertexArray(m_VAO);
