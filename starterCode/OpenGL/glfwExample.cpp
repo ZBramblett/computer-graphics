@@ -76,7 +76,7 @@ int main(void)
 
   // setup Camera
   vec3 viewDir(0, 0, -1);
-  vec3 origin(0, 0, 15);
+  vec3 origin(0, 0, 40);
   double imagePlaneWidth = .5;
   double focalLength = 1.0;
 
@@ -91,13 +91,20 @@ int main(void)
   // Projection matrix from the camera's image plane: near plane = image plane
   float farPlane = 100.0f;
   glm::mat4 perspMat = glm::frustum<float>(pCam->getLeft(), pCam->getRight(), pCam->getBottom(), pCam->getTop(), pCam->getFocalLength(), farPlane);
-  glm::vec4 lightPos(1.0f, 1.0f, 2.0f, 1.0f);
+  glm::vec4 lightPos(0.0f, 0.0f, 1.0f, 1.0f);
   glm::vec3 diffuseComponent(0.0f, 1.0f, 1.0f);
   glm::vec3 specularComponent(0.8f, 0.8f, 0.8f);
   float shininess(128.0f);
 
   glm::mat4 modelTransform = glm::mat4(1.0);
   glm::mat4 M_normal = glm::inverse(glm::transpose(modelTransform));
+
+  glm::mat4 leftTransform = glm::translate(glm::mat4(1.0), glm::vec3(-6.5f, 0.0f, 0.0f));
+  glm::mat4 rightTransform = glm::translate(glm::mat4(1.0), glm::vec3(6.5f, 0.0f, 0.0f));
+
+  glm::mat4 M_normalLeft = glm::mat4(glm::mat3(glm::inverse(glm::transpose(leftTransform))));
+  glm::mat4 M_normalRight = glm::mat4(glm::mat3(glm::inverse(glm::transpose(rightTransform))));
+  glm::vec3 lambertDiffuse(0.0f, 1.0f, 1.0f);
 
 
   GLint major_version;
@@ -170,6 +177,32 @@ int main(void)
   shininessID = shader.createUniform("shininess");
   cameraPosID = shader.createUniform("cameraPos");
 
+  // Lambertian program (left triangle)
+  sivelab::GLSLObject lambertianShader;
+  lambertianShader.addShader("vertexShader_PrepForPerFragment.glsl", sivelab::GLSLObject::VERTEX_SHADER);
+  lambertianShader.addShader("fragmentShader_Lambertian.glsl", sivelab::GLSLObject::FRAGMENT_SHADER);
+  lambertianShader.createProgram();
+
+  GLuint lamProjMatrixID, lamViewMatrixID, lamModelMatrixID, lamNormalMatrixID, lamLightPosWorldID, lamDiffuseComponentID;
+  lamProjMatrixID = lambertianShader.createUniform("projMatrix");
+  lamViewMatrixID = lambertianShader.createUniform("viewMatrix");
+  lamModelMatrixID = lambertianShader.createUniform("modelMatrix");
+  lamNormalMatrixID = lambertianShader.createUniform("normalMatrix");
+  lamLightPosWorldID = lambertianShader.createUniform("lightPosWorld");
+  lamDiffuseComponentID = lambertianShader.createUniform("diffuseComponent");
+
+  // Normal program (right triangle)
+  sivelab::GLSLObject normalShader;
+  normalShader.addShader("vertexShader_PrepForPerFragment.glsl", sivelab::GLSLObject::VERTEX_SHADER);
+  normalShader.addShader("fragmentShader_Normal.glsl", sivelab::GLSLObject::FRAGMENT_SHADER);
+  normalShader.createProgram();
+
+  GLuint normProjMatrixID, normViewMatrixID, normModelMatrixID, normNormalMatrixID;
+  normProjMatrixID = normalShader.createUniform("projMatrix");
+  normViewMatrixID = normalShader.createUniform("viewMatrix");
+  normModelMatrixID = normalShader.createUniform("modelMatrix");
+  normNormalMatrixID = normalShader.createUniform("normalMatrix");
+
   double timeDiff = 0.0,
          startFrameTime = 0.0, endFrameTime = 0.0;
 
@@ -207,6 +240,36 @@ int main(void)
     glBindVertexArray(0);
 
     shader.deactivate();
+
+    // Left triangle: Lambertian
+    lambertianShader.activate();
+
+    glUniformMatrix4fv(lamViewMatrixID, 1, GL_FALSE, glm::value_ptr(M_view));
+    glUniformMatrix4fv(lamProjMatrixID, 1, GL_FALSE, glm::value_ptr(perspMat));
+    glUniformMatrix4fv(lamModelMatrixID, 1, GL_FALSE, glm::value_ptr(leftTransform));
+    glUniformMatrix4fv(lamNormalMatrixID, 1, GL_FALSE, glm::value_ptr(M_normalLeft));
+    glUniform4f(lamLightPosWorldID, lightPos.x, lightPos.y, lightPos.z, lightPos.w);
+    glUniform3f(lamDiffuseComponentID, lambertDiffuse.x, lambertDiffuse.y, lambertDiffuse.z);
+
+    glBindVertexArray(m_VAO);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glBindVertexArray(0);
+
+    lambertianShader.deactivate();
+
+    // Right triangle: Normal
+    normalShader.activate();
+
+    glUniformMatrix4fv(normViewMatrixID, 1, GL_FALSE, glm::value_ptr(M_view));
+    glUniformMatrix4fv(normProjMatrixID, 1, GL_FALSE, glm::value_ptr(perspMat));
+    glUniformMatrix4fv(normModelMatrixID, 1, GL_FALSE, glm::value_ptr(rightTransform));
+    glUniformMatrix4fv(normNormalMatrixID, 1, GL_FALSE, glm::value_ptr(M_normalRight));
+
+    glBindVertexArray(m_VAO);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glBindVertexArray(0);
+
+    normalShader.deactivate();
 
     // Swap the front and back buffers
     glfwSwapBuffers(window);
