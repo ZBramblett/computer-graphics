@@ -9,7 +9,10 @@ in vec4 lightDir;
 
 void main(void)
 {
-    float val = max(0.0, dot(normal, lightDir));
+    vec4 n = normalize(normal);
+    vec4 l = normalize(lightDir);
+
+    float val = max(0.0, dot(n, l));
     vec3 diffuseShading = vec3( diffuseComponent.r * val, diffuseComponent.g * val, diffuseComponent.b * val );
     fragmentColor = vec4(diffuseShading, 1.0);
 }
