@@ -6,15 +6,15 @@ uniform vec3 diffuseComponent;
 uniform vec3 specularComponent;
 uniform vec4 cameraPos;
 uniform float shininess;
+uniform vec4 lightPosWorld;
 
 in vec4 normal;
-in vec4 lightDir;
 in vec4 vertexWorldPos;
 
 void main(void)
-{   
+{
     vec4 n = normalize(normal);
-    vec4 l = normalize(lightDir);
+    vec4 l = normalize(lightPosWorld - vertexWorldPos);
 
     float lamLighting = max(0.0, dot(n, l));
     vec4 viewDir = normalize((cameraPos - vertexWorldPos));

@@ -76,63 +76,60 @@ int main(void)
 
   // setup Camera
   vec3 viewDir(0, 0, -1);
-  vec3 origin(0, 0, 10);
+  vec3 origin(0, 0, 15);
   double imagePlaneWidth = .5;
   double focalLength = 1.0;
 
   auto pCam = std::make_shared<PerspectiveCamera>(viewDir, origin, fb_height, fb_width, imagePlaneWidth, focalLength);
 
+  // seed local copies from the camera; m_pos changes with keyboard movement
+  glm::vec3 m_pos = toGlm(pCam->getOrigin());
+  glm::vec3 m_U = toGlm(pCam->getU());
+  glm::vec3 m_V = toGlm(pCam->getV());
+  glm::vec3 m_W = toGlm(pCam->getW());
+
   // Projection matrix from the camera's image plane: near plane = image plane
   float farPlane = 100.0f;
   glm::mat4 perspMat = glm::frustum<float>(pCam->getLeft(), pCam->getRight(), pCam->getBottom(), pCam->getTop(), pCam->getFocalLength(), farPlane);
+  glm::vec4 lightPos(1.0f, 1.0f, 2.0f, 1.0f);
+  glm::vec3 diffuseComponent(0.0f, 1.0f, 1.0f);
+  glm::vec3 specularComponent(0.8f, 0.8f, 0.8f);
+  float shininess(128.0f);
+
+  glm::mat4 modelTransform = glm::mat4(1.0);
+  glm::mat4 M_normal = glm::inverse(glm::transpose(modelTransform));
 
 
   GLint major_version;
   glGetIntegerv(GL_MAJOR_VERSION, &major_version);
   std::cout << "GL_MAJOR_VERSION: " << major_version << std::endl;
 
-  // create a Vertex Array Buffer (VBO) to hold our triangle data
-  GLuint m_triangleVBO[2];
-  glGenBuffers(2, m_triangleVBO);
-  glBindBuffer(GL_ARRAY_BUFFER, m_triangleVBO[0]);
-
   // this is the actual triangle data that will be copied to the gpu memory
   glm::vec3 A = glm::vec3(-3.0f, -3.0f, 0.0f);
   glm::vec3 B = glm::vec3(3.0f, -3.0f, 0.0f);
   glm::vec3 C = glm::vec3(0.0f, 3.0f, 0.0f);
 
-
-  std::vector<float> host_VertexBuffer{ -3.0f, -3.0f, 0.0f, 3.0f, -3.0f, 0.0f, 0.0f, 3.0f, 0.0f };
-  int numBytes = host_VertexBuffer.size() * sizeof(float);
-
   glm::vec3 triNormal = glm::normalize(glm::cross(B - A, C - A));
 
-  // copy the numBytes from host_VerstexBUffer to the GPU and store in the currently bound VBO
+  // Interleaved layout: each vertex is 6 floats -> position (x, y, z) then normal (nx, ny, nz)
+  // clang-format off
+  std::vector<float> host_VertexBuffer{
+    A.x, A.y, A.z, triNormal.x, triNormal.y, triNormal.z,
+    B.x, B.y, B.z, triNormal.x, triNormal.y, triNormal.z,
+    C.x, C.y, C.z, triNormal.x, triNormal.y, triNormal.z,
+  };
+  // clang-format on
+  int numBytes = host_VertexBuffer.size() * sizeof(float);
 
+  // create one Vertex Buffer Object (VBO) to hold positions and normals together
+  GLuint m_triangleVBO;
+  glGenBuffers(1, &m_triangleVBO);
+  glBindBuffer(GL_ARRAY_BUFFER, m_triangleVBO);
+
+  // copy the numBytes from host_VertexBuffer to the GPU and store in the currently bound VBO
   glBufferData(GL_ARRAY_BUFFER, numBytes, host_VertexBuffer.data(), GL_STATIC_DRAW);
 
-
-  glBindBuffer(GL_ARRAY_BUFFER, m_triangleVBO[1]);
-
-  std::vector<float> host_normalBuffer{
-    triNormal.x,
-    triNormal.y,
-    triNormal.z,
-    triNormal.x,
-    triNormal.y,
-    triNormal.z,
-    triNormal.x,
-    triNormal.y,
-    triNormal.z,
-  };
-
-  glBufferData(GL_ARRAY_BUFFER, host_normalBuffer.size() * sizeof(float), host_normalBuffer.data(), GL_STATIC_DRAW);
-
-
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-
   // once copied, we no longer need the data on the host
-
   host_VertexBuffer.clear();
 
   // create a vertex array object that will map the attributes in
@@ -142,39 +139,36 @@ int main(void)
   glGenVertexArrays(1, &m_VAO);
   glBindVertexArray(m_VAO);
 
-  // VAO details here - we only have 1 attribute or location
-  // (Position of the vertex)
+  // Both attributes read from the same VBO (still bound from above)
+  GLsizei stride = 6 * sizeof(GLfloat);// bytes from one vertex to the next
+
+  // location 0: position, starts at byte 0 of each vertex
   glEnableVertexAttribArray(0);
-  glBindBuffer(GL_ARRAY_BUFFER, m_triangleVBO[0]);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
-  // Setting up the second buffer
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void *)0);
+
+  // location 1: normal, starts after the 3 position floats
   glEnableVertexAttribArray(1);
-  glBindBuffer(GL_ARRAY_BUFFER, m_triangleVBO[1]);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void *)(3 * sizeof(GLfloat)));
 
   glBindVertexArray(0);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   // Create a shader using my GLSLObject class
   sivelab::GLSLObject shader;
   shader.addShader("vertexShader_PrepForPerFragment.glsl", sivelab::GLSLObject::VERTEX_SHADER);
-  shader.addShader("fragmentShader_Lambertian.glsl", sivelab::GLSLObject::FRAGMENT_SHADER);
+  shader.addShader("fragmentShader_BlinnPhong.glsl", sivelab::GLSLObject::FRAGMENT_SHADER);
   shader.createProgram();
 
-  GLuint projMatrixID, viewMatrixID, modelMatrixID, normalMatrixID, lightPosWorldID, diffuseComponentID;
+  GLuint projMatrixID, viewMatrixID, modelMatrixID, normalMatrixID, lightPosWorldID, diffuseComponentID, cameraPosID, specularComponentID, shininessID;
   projMatrixID = shader.createUniform("projMatrix");
   viewMatrixID = shader.createUniform("viewMatrix");
   modelMatrixID = shader.createUniform("modelMatrix");
   normalMatrixID = shader.createUniform("normalMatrix");
   lightPosWorldID = shader.createUniform("lightPosWorld");
   diffuseComponentID = shader.createUniform("diffuseComponent");
-
-
-  // seed local copies from the camera; m_pos changes with keyboard movement
-  glm::vec3 m_pos = toGlm(pCam->getOrigin());
-  glm::vec3 m_U = toGlm(pCam->getU());
-  glm::vec3 m_V = toGlm(pCam->getV());
-  glm::vec3 m_W = toGlm(pCam->getW());
-
+  specularComponentID = shader.createUniform("specularComponent");
+  shininessID = shader.createUniform("shininess");
+  cameraPosID = shader.createUniform("cameraPos");
 
   double timeDiff = 0.0,
          startFrameTime = 0.0, endFrameTime = 0.0;
@@ -192,17 +186,10 @@ int main(void)
 
     // create the view matrix from out camera data
     glm::mat4 M_view = glm::lookAt(m_pos, m_pos - m_W, m_V);
+    glm::vec4 cameraPos(m_pos.x, m_pos.y, m_pos.z, 1);
 
     /* Render your objects here */
     shader.activate();
-
-    glm::vec4 lightPos(0.0f, 0.0f, 5.0f, 1.0f);
-    glm::vec3 diffuseComponent(0.0f, 0.8f, 0.8f);
-
-    GLfloat rotAngle = static_cast<float>(glfwGetTime()) * glm::radians(90.0f);
-    glm::mat4 modelTransform = glm::mat4(1.0);
-    modelTransform = glm::rotate(modelTransform, rotAngle, glm::vec3(0, 1, 0));
-    glm::mat4 M_normal = glm::inverse(glm::transpose(modelTransform));
 
     glUniformMatrix4fv(viewMatrixID, 1, GL_FALSE, glm::value_ptr(M_view));
     glUniformMatrix4fv(projMatrixID, 1, GL_FALSE, glm::value_ptr(perspMat));
@@ -210,6 +197,9 @@ int main(void)
     glUniformMatrix4fv(normalMatrixID, 1, GL_FALSE, glm::value_ptr(M_normal));
     glUniform4f(lightPosWorldID, lightPos.x, lightPos.y, lightPos.z, lightPos.w);
     glUniform3f(diffuseComponentID, diffuseComponent.x, diffuseComponent.y, diffuseComponent.z);
+    glUniform3f(specularComponentID, specularComponent.x, specularComponent.y, specularComponent.z);
+    glUniform4f(cameraPosID, cameraPos.x, cameraPos.y, cameraPos.z, cameraPos.w);
+    glUniform1f(shininessID, shininess);
 
 
     glBindVertexArray(m_VAO);
