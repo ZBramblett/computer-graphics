@@ -3,6 +3,7 @@ include_directories(${CMAKE_SOURCE_DIR}/src)
 add_executable (rasterizer
   main.cpp 
   GLSL.cpp GLSL.h
+  GLShape.cpp GLShape.h
 )
 
 target_link_libraries (rasterizer PRIVATE GLEW::GLEW)
