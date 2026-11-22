@@ -4,6 +4,7 @@ add_executable (rasterizer
   main.cpp 
   GLSL.cpp GLSL.h
   GLShape.cpp GLShape.h
+  GLTriangle.cpp GLTriangle.h
 )
 
 target_link_libraries (rasterizer PRIVATE GLEW::GLEW)

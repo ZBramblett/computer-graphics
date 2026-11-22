@@ -12,6 +12,7 @@
 #include "glm/gtc/type_ptr.hpp"
 
 #include "GLSL.h"
+#include "GLTriangle.h"
 
 #include "PerspectiveCamera.h"
 
@@ -111,54 +112,8 @@ int main(void)
   glGetIntegerv(GL_MAJOR_VERSION, &major_version);
   std::cout << "GL_MAJOR_VERSION: " << major_version << std::endl;
 
-  // this is the actual triangle data that will be copied to the gpu memory
-  glm::vec3 A = glm::vec3(-3.0f, -3.0f, 0.0f);
-  glm::vec3 B = glm::vec3(3.0f, -3.0f, 0.0f);
-  glm::vec3 C = glm::vec3(0.0f, 3.0f, 0.0f);
-
-  glm::vec3 triNormal = glm::normalize(glm::cross(B - A, C - A));
-
-  // Interleaved layout: each vertex is 6 floats -> position (x, y, z) then normal (nx, ny, nz)
-  // clang-format off
-  std::vector<float> host_VertexBuffer{
-    A.x, A.y, A.z, triNormal.x, triNormal.y, triNormal.z,
-    B.x, B.y, B.z, triNormal.x, triNormal.y, triNormal.z,
-    C.x, C.y, C.z, triNormal.x, triNormal.y, triNormal.z,
-  };
-  // clang-format on
-  int numBytes = host_VertexBuffer.size() * sizeof(float);
-
-  // create one Vertex Buffer Object (VBO) to hold positions and normals together
-  GLuint m_triangleVBO;
-  glGenBuffers(1, &m_triangleVBO);
-  glBindBuffer(GL_ARRAY_BUFFER, m_triangleVBO);
-
-  // copy the numBytes from host_VertexBuffer to the GPU and store in the currently bound VBO
-  glBufferData(GL_ARRAY_BUFFER, numBytes, host_VertexBuffer.data(), GL_STATIC_DRAW);
-
-  // once copied, we no longer need the data on the host
-  host_VertexBuffer.clear();
-
-  // create a vertex array object that will map the attributes in
-  // our vertex buffer to different location attributes for our
-  // shaders
-  GLuint m_VAO;
-  glGenVertexArrays(1, &m_VAO);
-  glBindVertexArray(m_VAO);
-
-  // Both attributes read from the same VBO (still bound from above)
-  GLsizei stride = 6 * sizeof(GLfloat);// bytes from one vertex to the next
-
-  // location 0: position, starts at byte 0 of each vertex
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void *)0);
-
-  // location 1: normal, starts after the 3 position floats
-  glEnableVertexAttribArray(1);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void *)(3 * sizeof(GLfloat)));
-
-  glBindVertexArray(0);
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  // makes the triangle
+  auto triangle = std::make_shared<GLTriangle>(glm::vec3(-3.0f, -3.0f, 0.0f), glm::vec3(3.0f, -3.0f, 0.0f), glm::vec3(0.0f, 3.0f, 0.0f));
 
   // Create a shader using my GLSLObject class
   sivelab::GLSLObject shader;
@@ -234,10 +189,7 @@ int main(void)
     glUniform4f(cameraPosID, cameraPos.x, cameraPos.y, cameraPos.z, cameraPos.w);
     glUniform1f(shininessID, shininess);
 
-
-    glBindVertexArray(m_VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-    glBindVertexArray(0);
+    triangle->draw();
 
     shader.deactivate();
 
@@ -251,9 +203,7 @@ int main(void)
     glUniform4f(lamLightPosWorldID, lightPos.x, lightPos.y, lightPos.z, lightPos.w);
     glUniform3f(lamDiffuseComponentID, lambertDiffuse.x, lambertDiffuse.y, lambertDiffuse.z);
 
-    glBindVertexArray(m_VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-    glBindVertexArray(0);
+    triangle->draw();
 
     lambertianShader.deactivate();
 
@@ -265,9 +215,7 @@ int main(void)
     glUniformMatrix4fv(normModelMatrixID, 1, GL_FALSE, glm::value_ptr(rightTransform));
     glUniformMatrix4fv(normNormalMatrixID, 1, GL_FALSE, glm::value_ptr(M_normalRight));
 
-    glBindVertexArray(m_VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-    glBindVertexArray(0);
+    triangle->draw();
 
     normalShader.deactivate();
 
@@ -296,6 +244,9 @@ int main(void)
       std::cout << "fps: " << 1.0 / timeDiff << std::endl;
     }
   }
+
+  // frees the triangle before opengl shuts down
+  triangle.reset();
 
   glfwTerminate();
   return 0;
