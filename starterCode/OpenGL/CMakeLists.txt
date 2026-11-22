@@ -1,27 +1,27 @@
 include_directories(${CMAKE_SOURCE_DIR}/src)
 
-add_executable (glfwExample
-  glfwExample.cpp 
+add_executable (rasterizer
+  main.cpp 
   GLSL.cpp GLSL.h
 )
 
-target_link_libraries (glfwExample PRIVATE GLEW::GLEW)
-target_link_libraries (glfwExample PRIVATE glfw)
-target_link_libraries (glfwExample PRIVATE renderlib)
+target_link_libraries (rasterizer PRIVATE GLEW::GLEW)
+target_link_libraries (rasterizer PRIVATE glfw)
+target_link_libraries (rasterizer PRIVATE renderlib)
 
 if(APPLE)
-    target_link_libraries(glfwExample PRIVATE
+    target_link_libraries(rasterizer PRIVATE
         "-framework OpenGL"
         "-framework Cocoa"
         "-framework IOKit"
         "-framework CoreVideo"
     )
 else()
-    target_link_libraries(glfwExample PRIVATE OpenGL::GL)
+    target_link_libraries(rasterizer PRIVATE OpenGL::GL)
 endif()
 
-target_link_libraries (glfwExample PRIVATE PNG::PNG)
-target_link_libraries (glfwExample PRIVATE ZLIB::ZLIB)
+target_link_libraries (rasterizer PRIVATE PNG::PNG)
+target_link_libraries (rasterizer PRIVATE ZLIB::ZLIB)
 
 # Copy every shader into the build folder; re-copies when a source .glsl changes
 file(GLOB SHADER_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.glsl)
