@@ -13,6 +13,7 @@
 
 #include "GLSL.h"
 #include "GLTriangle.h"
+#include "GLSphere.h"
 
 #include "PerspectiveCamera.h"
 
@@ -115,6 +116,9 @@ int main(void)
   // makes the triangle
   auto triangle = std::make_shared<GLTriangle>(glm::vec3(-3.0f, -3.0f, 0.0f), glm::vec3(3.0f, -3.0f, 0.0f), glm::vec3(0.0f, 3.0f, 0.0f));
 
+  // makes the sphere
+  auto sphere = std::make_shared<GLSphere>(glm::vec3(0.0f, 6.0f, 0.0f), 2.5f);
+
   // Create a shader using my GLSLObject class
   sivelab::GLSLObject shader;
   shader.addShader("vertexShader_PrepForPerFragment.glsl", sivelab::GLSLObject::VERTEX_SHADER);
@@ -190,6 +194,7 @@ int main(void)
     glUniform1f(shininessID, shininess);
 
     triangle->draw();
+    sphere->draw();
 
     shader.deactivate();
 
@@ -247,6 +252,7 @@ int main(void)
 
   // frees the triangle before opengl shuts down
   triangle.reset();
+  sphere.reset();
 
   glfwTerminate();
   return 0;

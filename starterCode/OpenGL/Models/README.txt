@@ -1,0 +1,1 @@
+All of these models were found at https://github.com/alecjacobson/common-3d-test-models

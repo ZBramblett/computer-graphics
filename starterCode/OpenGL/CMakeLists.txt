@@ -5,9 +5,13 @@ add_executable (rasterizer
   GLSL.cpp GLSL.h
   GLShape.cpp GLShape.h
   GLTriangle.cpp GLTriangle.h
+  GLSphere.cpp GLSphere.h
+  GLTriangleMesh.cpp GLTriangleMesh.h
+  OBJLoader.cpp OBJLoader.h
 )
 
 target_link_libraries (rasterizer PRIVATE GLEW::GLEW)
+target_link_libraries (rasterizer PRIVATE cs4212-util)
 target_link_libraries (rasterizer PRIVATE glfw)
 target_link_libraries (rasterizer PRIVATE renderlib)
 
