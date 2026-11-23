@@ -14,6 +14,8 @@
 #include "GLSL.h"
 #include "GLTriangle.h"
 #include "GLSphere.h"
+#include "GLTriangleMesh.h"
+#include "OBJLoader.h"
 
 #include "PerspectiveCamera.h"
 
@@ -70,16 +72,16 @@ int main(void)
 
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LESS);
-  glClearColor(.25, .25, .25, 1.0);
+  glClearColor(0.5, 0.7, 1.0, 1.0);
 
   int fb_width, fb_height;
   glfwGetFramebufferSize(window, &fb_width, &fb_height);
   glViewport(0, 0, fb_width, fb_height);
 
   // setup Camera
-  vec3 viewDir(0, 0, -1);
-  vec3 origin(0, 0, 40);
-  double imagePlaneWidth = .5;
+  vec3 viewDir(0, -0.3, -1.0);
+  vec3 origin(0, 2.0, 1.0);
+  double imagePlaneWidth = 1.0;
   double focalLength = 1.0;
 
   auto pCam = std::make_shared<PerspectiveCamera>(viewDir, origin, fb_height, fb_width, imagePlaneWidth, focalLength);
@@ -93,31 +95,50 @@ int main(void)
   // Projection matrix from the camera's image plane: near plane = image plane
   float farPlane = 100.0f;
   glm::mat4 perspMat = glm::frustum<float>(pCam->getLeft(), pCam->getRight(), pCam->getBottom(), pCam->getTop(), pCam->getFocalLength(), farPlane);
-  glm::vec4 lightPos(0.0f, 0.0f, 1.0f, 1.0f);
-  glm::vec3 diffuseComponent(0.0f, 1.0f, 1.0f);
-  glm::vec3 specularComponent(0.8f, 0.8f, 0.8f);
-  float shininess(128.0f);
+  // the two lights
+  glm::vec4 lightPositions[2] = { glm::vec4(4.0f, 4.0f, 0.0f, 1.0f), glm::vec4(-4.0f, 2.0f, -1.0f, 1.0f) };
+  glm::vec3 lightIntensities[2] = { glm::vec3(0.8f, 0.68f, 0.56f), glm::vec3(0.14f, 0.21f, 0.35f) };
 
   glm::mat4 modelTransform = glm::mat4(1.0);
   glm::mat4 M_normal = glm::inverse(glm::transpose(modelTransform));
 
-  glm::mat4 leftTransform = glm::translate(glm::mat4(1.0), glm::vec3(-6.5f, 0.0f, 0.0f));
-  glm::mat4 rightTransform = glm::translate(glm::mat4(1.0), glm::vec3(6.5f, 0.0f, 0.0f));
-
-  glm::mat4 M_normalLeft = glm::mat4(glm::mat3(glm::inverse(glm::transpose(leftTransform))));
-  glm::mat4 M_normalRight = glm::mat4(glm::mat3(glm::inverse(glm::transpose(rightTransform))));
-  glm::vec3 lambertDiffuse(0.0f, 1.0f, 1.0f);
+  // materials
+  glm::vec3 cyan(0.0f, 0.8f, 0.8f);
+  glm::vec3 floorGray(0.5f, 0.5f, 0.5f);
+  glm::vec3 satinSpecular(0.6f, 0.6f, 0.6f);
+  float satinShininess = 16.0f;
+  glm::vec3 glossySpecular(1.0f, 1.0f, 1.0f);
+  float glossyShininess = 200.0f;
 
 
   GLint major_version;
   glGetIntegerv(GL_MAJOR_VERSION, &major_version);
   std::cout << "GL_MAJOR_VERSION: " << major_version << std::endl;
 
-  // makes the triangle
-  auto triangle = std::make_shared<GLTriangle>(glm::vec3(-3.0f, -3.0f, 0.0f), glm::vec3(3.0f, -3.0f, 0.0f), glm::vec3(0.0f, 3.0f, 0.0f));
+  // build scene here
 
-  // makes the sphere
-  auto sphere = std::make_shared<GLSphere>(glm::vec3(0.0f, 6.0f, 0.0f), 2.5f);
+  // zbramblett scene
+  auto floorSphere = std::make_shared<GLSphere>(glm::vec3(0.0f, -100.5f, -5.0f), 100.0f, 5);
+  auto leftSphere = std::make_shared<GLSphere>(glm::vec3(-1.2f, 0.0f, -4.0f), 0.5f, 4);
+  auto middleSphere = std::make_shared<GLSphere>(glm::vec3(0.0f, 0.0f, -4.0f), 0.5f, 4);
+  auto rightSphere = std::make_shared<GLSphere>(glm::vec3(1.2f, 0.0f, -4.0f), 0.5f, 4);
+
+  // bunny code
+  // std::vector<glm::vec3> bunnyVert = loadOBJ("../../OpenGL/Models/stanford-bunny.obj");
+  // auto bunny = std::make_shared<GLTriangleMesh>(bunnyVert);
+  // glm::mat4 bunnyTransform = glm::scale(glm::mat4(1.0f), glm::vec3(40.0f));
+  // glm::mat4 M_normalBunny = glm::mat4(glm::mat3(glm::inverse(glm::transpose(bunnyTransform))));
+
+
+  // horse code
+  // std::vector<glm::vec3> horseVert = loadOBJ("../../OpenGL/Models/horse.obj");
+  // auto horse = std::make_shared<GLTriangleMesh>(horseVert);
+
+  // glm::mat4 horseTransform = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0, 1, 0));
+  // horseTransform = glm::rotate(horseTransform, glm::radians(-90.0f), glm::vec3(1, 0, 0));
+  // horseTransform = glm::scale(horseTransform, glm::vec3(40.0f));
+  // glm::mat4 M_normalHorse = glm::mat4(glm::mat3(glm::inverse(glm::transpose(horseTransform))));
+
 
   // Create a shader using my GLSLObject class
   sivelab::GLSLObject shader;
@@ -125,12 +146,13 @@ int main(void)
   shader.addShader("fragmentShader_BlinnPhong.glsl", sivelab::GLSLObject::FRAGMENT_SHADER);
   shader.createProgram();
 
-  GLuint projMatrixID, viewMatrixID, modelMatrixID, normalMatrixID, lightPosWorldID, diffuseComponentID, cameraPosID, specularComponentID, shininessID;
+  GLuint projMatrixID, viewMatrixID, modelMatrixID, normalMatrixID, lightPosWorldID, lightIntensityID, diffuseComponentID, cameraPosID, specularComponentID, shininessID;
   projMatrixID = shader.createUniform("projMatrix");
   viewMatrixID = shader.createUniform("viewMatrix");
   modelMatrixID = shader.createUniform("modelMatrix");
   normalMatrixID = shader.createUniform("normalMatrix");
   lightPosWorldID = shader.createUniform("lightPosWorld");
+  lightIntensityID = shader.createUniform("lightIntensity");
   diffuseComponentID = shader.createUniform("diffuseComponent");
   specularComponentID = shader.createUniform("specularComponent");
   shininessID = shader.createUniform("shininess");
@@ -142,12 +164,13 @@ int main(void)
   lambertianShader.addShader("fragmentShader_Lambertian.glsl", sivelab::GLSLObject::FRAGMENT_SHADER);
   lambertianShader.createProgram();
 
-  GLuint lamProjMatrixID, lamViewMatrixID, lamModelMatrixID, lamNormalMatrixID, lamLightPosWorldID, lamDiffuseComponentID;
+  GLuint lamProjMatrixID, lamViewMatrixID, lamModelMatrixID, lamNormalMatrixID, lamLightPosWorldID, lamLightIntensityID, lamDiffuseComponentID;
   lamProjMatrixID = lambertianShader.createUniform("projMatrix");
   lamViewMatrixID = lambertianShader.createUniform("viewMatrix");
   lamModelMatrixID = lambertianShader.createUniform("modelMatrix");
   lamNormalMatrixID = lambertianShader.createUniform("normalMatrix");
   lamLightPosWorldID = lambertianShader.createUniform("lightPosWorld");
+  lamLightIntensityID = lambertianShader.createUniform("lightIntensity");
   lamDiffuseComponentID = lambertianShader.createUniform("diffuseComponent");
 
   // Normal program (right triangle)
@@ -187,40 +210,66 @@ int main(void)
     glUniformMatrix4fv(projMatrixID, 1, GL_FALSE, glm::value_ptr(perspMat));
     glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(modelTransform));
     glUniformMatrix4fv(normalMatrixID, 1, GL_FALSE, glm::value_ptr(M_normal));
-    glUniform4f(lightPosWorldID, lightPos.x, lightPos.y, lightPos.z, lightPos.w);
-    glUniform3f(diffuseComponentID, diffuseComponent.x, diffuseComponent.y, diffuseComponent.z);
-    glUniform3f(specularComponentID, specularComponent.x, specularComponent.y, specularComponent.z);
+    glUniform4fv(lightPosWorldID, 2, glm::value_ptr(lightPositions[0]));
+    glUniform3fv(lightIntensityID, 2, glm::value_ptr(lightIntensities[0]));
     glUniform4f(cameraPosID, cameraPos.x, cameraPos.y, cameraPos.z, cameraPos.w);
-    glUniform1f(shininessID, shininess);
 
-    triangle->draw();
-    sphere->draw();
+    // draw blinn-phong shapes here
+
+    // satin
+    glUniform3fv(diffuseComponentID, 1, glm::value_ptr(cyan));
+    glUniform3fv(specularComponentID, 1, glm::value_ptr(satinSpecular));
+    glUniform1f(shininessID, satinShininess);
+    middleSphere->draw();
+
+    // glossy
+    glUniform3fv(diffuseComponentID, 1, glm::value_ptr(cyan));
+    glUniform3fv(specularComponentID, 1, glm::value_ptr(glossySpecular));
+    glUniform1f(shininessID, glossyShininess);
+    rightSphere->draw();
 
     shader.deactivate();
 
-    // Left triangle: Lambertian
+    // Lambertian
     lambertianShader.activate();
 
     glUniformMatrix4fv(lamViewMatrixID, 1, GL_FALSE, glm::value_ptr(M_view));
     glUniformMatrix4fv(lamProjMatrixID, 1, GL_FALSE, glm::value_ptr(perspMat));
-    glUniformMatrix4fv(lamModelMatrixID, 1, GL_FALSE, glm::value_ptr(leftTransform));
-    glUniformMatrix4fv(lamNormalMatrixID, 1, GL_FALSE, glm::value_ptr(M_normalLeft));
-    glUniform4f(lamLightPosWorldID, lightPos.x, lightPos.y, lightPos.z, lightPos.w);
-    glUniform3f(lamDiffuseComponentID, lambertDiffuse.x, lambertDiffuse.y, lambertDiffuse.z);
+    glUniformMatrix4fv(lamModelMatrixID, 1, GL_FALSE, glm::value_ptr(modelTransform));
+    glUniformMatrix4fv(lamNormalMatrixID, 1, GL_FALSE, glm::value_ptr(M_normal));
+    glUniform4fv(lamLightPosWorldID, 2, glm::value_ptr(lightPositions[0]));
+    glUniform3fv(lamLightIntensityID, 2, glm::value_ptr(lightIntensities[0]));
 
-    triangle->draw();
+    // draw lambertian shapes here
+
+    // matte
+    glUniform3fv(lamDiffuseComponentID, 1, glm::value_ptr(cyan));
+    leftSphere->draw();
+
+    // floor
+    glUniform3fv(lamDiffuseComponentID, 1, glm::value_ptr(floorGray));
+    floorSphere->draw();
+
+    // glUniformMatrix4fv(lamModelMatrixID, 1, GL_FALSE, glm::value_ptr(horseTransform));
+    // glUniformMatrix4fv(lamNormalMatrixID, 1, GL_FALSE, glm::value_ptr(M_normalHorse));
+    // horse->draw();
+
+    // glUniformMatrix4fv(lamModelMatrixID, 1, GL_FALSE, glm::value_ptr(bunnyTransform));
+    // glUniformMatrix4fv(lamNormalMatrixID, 1, GL_FALSE, glm::value_ptr(M_normalBunny));
+    // bunny->draw();
+
 
     lambertianShader.deactivate();
 
-    // Right triangle: Normal
+    // Normal
     normalShader.activate();
 
     glUniformMatrix4fv(normViewMatrixID, 1, GL_FALSE, glm::value_ptr(M_view));
     glUniformMatrix4fv(normProjMatrixID, 1, GL_FALSE, glm::value_ptr(perspMat));
-    glUniformMatrix4fv(normModelMatrixID, 1, GL_FALSE, glm::value_ptr(rightTransform));
-    glUniformMatrix4fv(normNormalMatrixID, 1, GL_FALSE, glm::value_ptr(M_normalRight));
+    glUniformMatrix4fv(normModelMatrixID, 1, GL_FALSE, glm::value_ptr(modelTransform));
+    glUniformMatrix4fv(normNormalMatrixID, 1, GL_FALSE, glm::value_ptr(M_normal));
 
-    triangle->draw();
+    // draw normal shapes here
 
     normalShader.deactivate();
 
@@ -245,14 +294,48 @@ int main(void)
     } else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
       m_pos = m_pos - m_W * moveRatePerFrame;
     }
+    float turnRatePerFrame = 0.02f;
+    glm::vec3 worldUp(0.0f, 1.0f, 0.0f);
+
+    // turns left and right
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+      m_W = glm::mat3(glm::rotate(glm::mat4(1.0f), turnRatePerFrame, worldUp)) * m_W;
+    }
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+      m_W = glm::mat3(glm::rotate(glm::mat4(1.0f), -turnRatePerFrame, worldUp)) * m_W;
+    }
+
+    // looks up and down, stops before straight up or down
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+      glm::vec3 newW = glm::mat3(glm::rotate(glm::mat4(1.0f), turnRatePerFrame, m_U)) * m_W;
+      if (std::abs(newW.y) < 0.99f) {
+        m_W = newW;
+      }
+    }
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+      glm::vec3 newW = glm::mat3(glm::rotate(glm::mat4(1.0f), -turnRatePerFrame, m_U)) * m_W;
+      if (std::abs(newW.y) < 0.99f) {
+        m_W = newW;
+      }
+    }
+
+    // rebuilds the camera axes
+    m_W = glm::normalize(m_W);
+    m_U = glm::normalize(glm::cross(worldUp, m_W));
+    m_V = glm::cross(m_W, m_U);
+
     if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS) {
       std::cout << "fps: " << 1.0 / timeDiff << std::endl;
     }
   }
 
-  // frees the triangle before opengl shuts down
-  triangle.reset();
-  sphere.reset();
+  // free your shapes here before opengl shuts down
+  // horse.reset();
+  // bunny.reset();
+  floorSphere.reset();
+  leftSphere.reset();
+  middleSphere.reset();
+  rightSphere.reset();
 
   glfwTerminate();
   return 0;

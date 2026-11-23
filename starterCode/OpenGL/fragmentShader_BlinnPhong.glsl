@@ -6,7 +6,8 @@ uniform vec3 diffuseComponent;
 uniform vec3 specularComponent;
 uniform vec4 cameraPos;
 uniform float shininess;
-uniform vec4 lightPosWorld;
+uniform vec4 lightPosWorld[2];
+uniform vec3 lightIntensity[2];
 
 in vec4 normal;
 in vec4 vertexWorldPos;
@@ -14,13 +15,17 @@ in vec4 vertexWorldPos;
 void main(void)
 {
     vec4 n = normalize(normal);
-    vec4 l = normalize(lightPosWorld - vertexWorldPos);
+    vec4 viewDir = normalize(cameraPos - vertexWorldPos);
 
-    float lamLighting = max(0.0, dot(n, l));
-    vec4 viewDir = normalize((cameraPos - vertexWorldPos));
-    vec4 halfVector = normalize((l + viewDir));
-    float blinnLighting = pow(max(0.0, dot(n, halfVector)), shininess);
-    vec3 diffuseShading = vec3( diffuseComponent.r * lamLighting, diffuseComponent.g * lamLighting, diffuseComponent.b * lamLighting );
-    vec3 phongShading = diffuseShading + vec3(specularComponent.r * blinnLighting, specularComponent.g * blinnLighting, specularComponent.b * blinnLighting);
-    fragmentColor = vec4(phongShading, 1.0);
+    // adds up every light
+    vec3 result = vec3(0.0);
+    for (int i = 0; i < 2; ++i) {
+        vec4 l = normalize(lightPosWorld[i] - vertexWorldPos);
+        float lamLighting = max(0.0, dot(n, l));
+        vec4 halfVector = normalize(l + viewDir);
+        float blinnLighting = pow(max(0.0, dot(n, halfVector)), shininess);
+        result += lightIntensity[i] * (diffuseComponent * lamLighting + specularComponent * blinnLighting);
+    }
+
+    fragmentColor = vec4(min(result, vec3(1.0)), 1.0);
 }

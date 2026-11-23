@@ -3,7 +3,8 @@
 layout(location=0) out vec4 fragmentColor;
 
 uniform vec3 diffuseComponent;
-uniform vec4 lightPosWorld;
+uniform vec4 lightPosWorld[2];
+uniform vec3 lightIntensity[2];
 
 in vec4 normal;
 in vec4 vertexWorldPos;
@@ -11,9 +12,14 @@ in vec4 vertexWorldPos;
 void main(void)
 {
     vec4 n = normalize(normal);
-    vec4 l = normalize(lightPosWorld - vertexWorldPos);
 
-    float val = max(0.0, dot(n, l));
-    vec3 diffuseShading = vec3( diffuseComponent.r * val, diffuseComponent.g * val, diffuseComponent.b * val );
-    fragmentColor = vec4(diffuseShading, 1.0);
+    // adds up every light
+    vec3 result = vec3(0.0);
+    for (int i = 0; i < 2; ++i) {
+        vec4 l = normalize(lightPosWorld[i] - vertexWorldPos);
+        float val = max(0.0, dot(n, l));
+        result += diffuseComponent * lightIntensity[i] * val;
+    }
+
+    fragmentColor = vec4(min(result, vec3(1.0)), 1.0);
 }

@@ -1,3 +1,41 @@
+# Ray Tracer and OpenGL Rasterizer
+This project contain both a ray tracer and OpenGL Rasterizer that I have built. 
+The ray tracer has the ability to make spheres, triangles, and load json files.
+It also contains shadows, antialiasing and point lights.
+
+The Rasterizer can do many of the same things, however instead of loading jsons, it can load obj files
+It also currently lacks any shadows and antialiasing.
+
+
+## Rasterizer Setup
+```
+Quick Start Guide if you already have an environment setup for this stuff (You probably do because you are grading this!!!)
+
+Go to the starterCode Directory
+run cmake --preset=default
+go to buildVCPkg
+go to OpenGL
+there will be an executable file called rasterizer
+Run that and you will have a window open that runs the scene
+```
+
+## Rasterizer Controls
+```
+W moves you up
+A moves you left
+S moves you down
+D moves you right
+Q moves you forward
+E moves you backwards
+
+Arrow Keys control the camera look directions
+Up looks up
+Down looks down
+Right looks right
+Left Looks left
+```
+
+## Ray Tracer Setup
 Quick Start Guide if you already have an environment setup for this stuff (You probably do because you are grading this!!!)
 
 ```
