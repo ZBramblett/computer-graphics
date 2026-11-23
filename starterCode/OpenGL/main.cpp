@@ -22,10 +22,19 @@
 // convert ray tracer vec3 (doubles) to glm::vec3 (floats)
 glm::vec3 toGlm(const vec3 &v) { return glm::vec3(v.x(), v.y(), v.z()); }
 
-int CheckGLErrors(const char *s)
+// places something on a circle around center, turned to face along the circle
+glm::mat4 orbitTransform(const glm::vec3 &center, float radius, float angle)
 {
-  int errCount = 0;
-  return errCount;
+  glm::mat4 m = glm::translate(glm::mat4(1.0f), center);
+  m = glm::rotate(m, angle, glm::vec3(0.0f, 1.0f, 0.0f));
+  m = glm::translate(m, glm::vec3(radius, 0.0f, 0.0f));
+  return m;
+}
+
+// makes the normal matrix for a model matrix
+glm::mat4 normalMatrixFor(const glm::mat4 &model)
+{
+  return glm::mat4(glm::mat3(glm::inverse(glm::transpose(model))));
 }
 
 int main(void)
@@ -34,7 +43,6 @@ int main(void)
   if (!glfwInit()) {
     exit(-1);
   }
-  // throw std::runtime_error("Error! initialization of glfw failed!");
 
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
@@ -43,17 +51,16 @@ int main(void)
 
   /* Create a windowed mode window and its OpenGL context */
   int winWidth = 1000;
-  float aspectRatio = 1.0;// 16.0 / 9.0; // winWidth / (float)winHeight;
+  float aspectRatio = 1.0;
   int winHeight = winWidth / aspectRatio;
 
-  GLFWwindow *window = glfwCreateWindow(winWidth, winHeight, "GLFW Example", NULL, NULL);
+  GLFWwindow *window = glfwCreateWindow(winWidth, winHeight, "Rasterizer", NULL, NULL);
   if (!window) {
     std::cerr << "GLFW did not create a window!" << std::endl;
 
     glfwTerminate();
     return -1;
   }
-
 
   /* Make the window's context current */
   glfwMakeContextCurrent(window);
@@ -95,6 +102,7 @@ int main(void)
   // Projection matrix from the camera's image plane: near plane = image plane
   float farPlane = 100.0f;
   glm::mat4 perspMat = glm::frustum<float>(pCam->getLeft(), pCam->getRight(), pCam->getBottom(), pCam->getTop(), pCam->getFocalLength(), farPlane);
+
   // the two lights
   glm::vec4 lightPositions[2] = { glm::vec4(4.0f, 4.0f, 0.0f, 1.0f), glm::vec4(-4.0f, 2.0f, -1.0f, 1.0f) };
   glm::vec3 lightIntensities[2] = { glm::vec3(0.8f, 0.68f, 0.56f), glm::vec3(0.14f, 0.21f, 0.35f) };
@@ -103,44 +111,62 @@ int main(void)
   glm::mat4 M_normal = glm::inverse(glm::transpose(modelTransform));
 
   // materials
-  glm::vec3 cyan(0.0f, 0.8f, 0.8f);
   glm::vec3 floorGray(0.5f, 0.5f, 0.5f);
+  glm::vec3 homerYellow(0.9f, 0.8f, 0.2f);
+  glm::vec3 homerSpecular(0.6f, 0.6f, 0.6f);
+  float homerShininess = 32.0f;
+  glm::vec3 shinySpecular(1.0f, 1.0f, 1.0f);
+  float shinyShininess = 200.0f;
+  glm::vec3 sphereRed(0.8f, 0.1f, 0.1f);
   glm::vec3 satinSpecular(0.6f, 0.6f, 0.6f);
   float satinShininess = 16.0f;
-  glm::vec3 glossySpecular(1.0f, 1.0f, 1.0f);
-  float glossyShininess = 200.0f;
-
-
-  GLint major_version;
-  glGetIntegerv(GL_MAJOR_VERSION, &major_version);
-  std::cout << "GL_MAJOR_VERSION: " << major_version << std::endl;
+  glm::vec3 horseBrown(0.45f, 0.28f, 0.12f);
 
   // build scene here
 
-  // zbramblett scene
-  auto floorSphere = std::make_shared<GLSphere>(glm::vec3(0.0f, -100.5f, -5.0f), 100.0f, 5);
-  auto leftSphere = std::make_shared<GLSphere>(glm::vec3(-1.2f, 0.0f, -4.0f), 0.5f, 4);
-  auto middleSphere = std::make_shared<GLSphere>(glm::vec3(0.0f, 0.0f, -4.0f), 0.5f, 4);
-  auto rightSphere = std::make_shared<GLSphere>(glm::vec3(1.2f, 0.0f, -4.0f), 0.5f, 4);
+  // floor, two triangles facing up
+  float floorSize = 20.0f;
+  float floorHeight = -0.5f;
+  // clang-format off
+  std::vector<glm::vec3> floorPoints{
+    glm::vec3(-floorSize, floorHeight,  floorSize), glm::vec3( floorSize, floorHeight,  floorSize), glm::vec3( floorSize, floorHeight, -floorSize),
+    glm::vec3(-floorSize, floorHeight,  floorSize), glm::vec3( floorSize, floorHeight, -floorSize), glm::vec3(-floorSize, floorHeight, -floorSize),
+  };
+  // clang-format on
+  auto floor = std::make_shared<GLTriangleMesh>(floorPoints);
 
-  // bunny code
-  // std::vector<glm::vec3> bunnyVert = loadOBJ("../../OpenGL/Models/stanford-bunny.obj");
-  // auto bunny = std::make_shared<GLTriangleMesh>(bunnyVert);
-  // glm::mat4 bunnyTransform = glm::scale(glm::mat4(1.0f), glm::vec3(40.0f));
-  // glm::mat4 M_normalBunny = glm::mat4(glm::mat3(glm::inverse(glm::transpose(bunnyTransform))));
+  // base home mesh
+  std::vector<glm::vec3> homerPoints = loadOBJ("../../OpenGL/Models/homer.obj");
+  auto homer = std::make_shared<GLTriangleMesh>(homerPoints);
 
+  // tranform him to fit
+  glm::mat4 homerBase = glm::scale(glm::mat4(1.0f), glm::vec3(1.8f));
+  homerBase = glm::translate(homerBase, glm::vec3(-0.4992f, -0.1562f, -0.4923f));
 
-  // horse code
-  // std::vector<glm::vec3> horseVert = loadOBJ("../../OpenGL/Models/horse.obj");
-  // auto horse = std::make_shared<GLTriangleMesh>(horseVert);
+  // red sphere sitting on the floor in the middle
+  float sphereRadius = 0.7f;
+  glm::vec3 sphereCenter(0.0f, floorHeight + sphereRadius, -4.0f);
+  auto redSphere = std::make_shared<GLSphere>(sphereCenter, sphereRadius, 4);
 
-  // glm::mat4 horseTransform = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0, 1, 0));
-  // horseTransform = glm::rotate(horseTransform, glm::radians(-90.0f), glm::vec3(1, 0, 0));
-  // horseTransform = glm::scale(horseTransform, glm::vec3(40.0f));
-  // glm::mat4 M_normalHorse = glm::mat4(glm::mat3(glm::inverse(glm::transpose(horseTransform))));
+  // small horse standing on top of the sphere
+  std::vector<glm::vec3> horsePoints = loadOBJ("../../OpenGL/Models/horse.obj");
+  auto horse = std::make_shared<GLTriangleMesh>(horsePoints);
 
+  // setting up the horse
+  glm::vec3 sphereTop = sphereCenter + glm::vec3(0.0f, sphereRadius - 0.03f, 0.0f);
+  glm::mat4 horseTransform = glm::translate(glm::mat4(1.0f), sphereTop);
+  horseTransform = glm::rotate(horseTransform, glm::radians(90.0f), glm::vec3(0, 1, 0));
+  horseTransform = glm::rotate(horseTransform, glm::radians(-90.0f), glm::vec3(1, 0, 0));
+  horseTransform = glm::scale(horseTransform, glm::vec3(3.0f));
+  horseTransform = glm::translate(horseTransform, glm::vec3(0.0f, 0.0f, 0.0764f));
+  glm::mat4 M_normalHorse = normalMatrixFor(horseTransform);
 
-  // Create a shader using my GLSLObject class
+  // the circle the homers walk around
+  glm::vec3 orbitCenter(0.0f, floorHeight, -4.0f);
+  float orbitRadius = 1.8f;
+  float orbitSpeed = 0.5f;
+
+  // Blinn-Phong program
   sivelab::GLSLObject shader;
   shader.addShader("vertexShader_PrepForPerFragment.glsl", sivelab::GLSLObject::VERTEX_SHADER);
   shader.addShader("fragmentShader_BlinnPhong.glsl", sivelab::GLSLObject::FRAGMENT_SHADER);
@@ -158,7 +184,7 @@ int main(void)
   shininessID = shader.createUniform("shininess");
   cameraPosID = shader.createUniform("cameraPos");
 
-  // Lambertian program (left triangle)
+  // Lambertian program
   sivelab::GLSLObject lambertianShader;
   lambertianShader.addShader("vertexShader_PrepForPerFragment.glsl", sivelab::GLSLObject::VERTEX_SHADER);
   lambertianShader.addShader("fragmentShader_Lambertian.glsl", sivelab::GLSLObject::FRAGMENT_SHADER);
@@ -173,7 +199,7 @@ int main(void)
   lamLightIntensityID = lambertianShader.createUniform("lightIntensity");
   lamDiffuseComponentID = lambertianShader.createUniform("diffuseComponent");
 
-  // Normal program (right triangle)
+  // Normal program
   sivelab::GLSLObject normalShader;
   normalShader.addShader("vertexShader_PrepForPerFragment.glsl", sivelab::GLSLObject::VERTEX_SHADER);
   normalShader.addShader("fragmentShader_Normal.glsl", sivelab::GLSLObject::FRAGMENT_SHADER);
@@ -187,7 +213,6 @@ int main(void)
 
   double timeDiff = 0.0,
          startFrameTime = 0.0, endFrameTime = 0.0;
-
 
   /* Loop until the user closes the window */
   while (!glfwWindowShouldClose(window)) {
@@ -203,7 +228,15 @@ int main(void)
     glm::mat4 M_view = glm::lookAt(m_pos, m_pos - m_W, m_V);
     glm::vec4 cameraPos(m_pos.x, m_pos.y, m_pos.z, 1);
 
-    /* Render your objects here */
+    // moves the homers around the circle
+    float orbitAngle = -(float)glfwGetTime() * orbitSpeed;
+    float quarterTurn = glm::radians(90.0f);
+    glm::mat4 homerLambert = orbitTransform(orbitCenter, orbitRadius, orbitAngle) * homerBase;
+    glm::mat4 homerBlinn = orbitTransform(orbitCenter, orbitRadius, orbitAngle + quarterTurn) * homerBase;
+    glm::mat4 homerNormal = orbitTransform(orbitCenter, orbitRadius, orbitAngle + 2.0f * quarterTurn) * homerBase;
+    glm::mat4 homerShiny = orbitTransform(orbitCenter, orbitRadius, orbitAngle + 3.0f * quarterTurn) * homerBase;
+
+    // Blinn-Phong
     shader.activate();
 
     glUniformMatrix4fv(viewMatrixID, 1, GL_FALSE, glm::value_ptr(M_view));
@@ -216,17 +249,27 @@ int main(void)
 
     // draw blinn-phong shapes here
 
-    // satin
-    glUniform3fv(diffuseComponentID, 1, glm::value_ptr(cyan));
+    // red satin sphere
+    glUniform3fv(diffuseComponentID, 1, glm::value_ptr(sphereRed));
     glUniform3fv(specularComponentID, 1, glm::value_ptr(satinSpecular));
     glUniform1f(shininessID, satinShininess);
-    middleSphere->draw();
+    redSphere->draw();
 
-    // glossy
-    glUniform3fv(diffuseComponentID, 1, glm::value_ptr(cyan));
-    glUniform3fv(specularComponentID, 1, glm::value_ptr(glossySpecular));
-    glUniform1f(shininessID, glossyShininess);
-    rightSphere->draw();
+    // blinn-phong homer
+    glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(homerBlinn));
+    glUniformMatrix4fv(normalMatrixID, 1, GL_FALSE, glm::value_ptr(normalMatrixFor(homerBlinn)));
+    glUniform3fv(diffuseComponentID, 1, glm::value_ptr(homerYellow));
+    glUniform3fv(specularComponentID, 1, glm::value_ptr(homerSpecular));
+    glUniform1f(shininessID, homerShininess);
+    homer->draw();
+
+    // super shiny homer
+    glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(homerShiny));
+    glUniformMatrix4fv(normalMatrixID, 1, GL_FALSE, glm::value_ptr(normalMatrixFor(homerShiny)));
+    glUniform3fv(diffuseComponentID, 1, glm::value_ptr(homerYellow));
+    glUniform3fv(specularComponentID, 1, glm::value_ptr(shinySpecular));
+    glUniform1f(shininessID, shinyShininess);
+    homer->draw();
 
     shader.deactivate();
 
@@ -242,22 +285,21 @@ int main(void)
 
     // draw lambertian shapes here
 
-    // matte
-    glUniform3fv(lamDiffuseComponentID, 1, glm::value_ptr(cyan));
-    leftSphere->draw();
-
     // floor
     glUniform3fv(lamDiffuseComponentID, 1, glm::value_ptr(floorGray));
-    floorSphere->draw();
+    floor->draw();
 
-    // glUniformMatrix4fv(lamModelMatrixID, 1, GL_FALSE, glm::value_ptr(horseTransform));
-    // glUniformMatrix4fv(lamNormalMatrixID, 1, GL_FALSE, glm::value_ptr(M_normalHorse));
-    // horse->draw();
+    // brown horse
+    glUniformMatrix4fv(lamModelMatrixID, 1, GL_FALSE, glm::value_ptr(horseTransform));
+    glUniformMatrix4fv(lamNormalMatrixID, 1, GL_FALSE, glm::value_ptr(M_normalHorse));
+    glUniform3fv(lamDiffuseComponentID, 1, glm::value_ptr(horseBrown));
+    horse->draw();
 
-    // glUniformMatrix4fv(lamModelMatrixID, 1, GL_FALSE, glm::value_ptr(bunnyTransform));
-    // glUniformMatrix4fv(lamNormalMatrixID, 1, GL_FALSE, glm::value_ptr(M_normalBunny));
-    // bunny->draw();
-
+    // lambertian homer
+    glUniformMatrix4fv(lamModelMatrixID, 1, GL_FALSE, glm::value_ptr(homerLambert));
+    glUniformMatrix4fv(lamNormalMatrixID, 1, GL_FALSE, glm::value_ptr(normalMatrixFor(homerLambert)));
+    glUniform3fv(lamDiffuseComponentID, 1, glm::value_ptr(homerYellow));
+    homer->draw();
 
     lambertianShader.deactivate();
 
@@ -270,6 +312,11 @@ int main(void)
     glUniformMatrix4fv(normNormalMatrixID, 1, GL_FALSE, glm::value_ptr(M_normal));
 
     // draw normal shapes here
+
+    // normal homer
+    glUniformMatrix4fv(normModelMatrixID, 1, GL_FALSE, glm::value_ptr(homerNormal));
+    glUniformMatrix4fv(normNormalMatrixID, 1, GL_FALSE, glm::value_ptr(normalMatrixFor(homerNormal)));
+    homer->draw();
 
     normalShader.deactivate();
 
@@ -294,6 +341,7 @@ int main(void)
     } else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
       m_pos = m_pos - m_W * moveRatePerFrame;
     }
+
     float turnRatePerFrame = 0.02f;
     glm::vec3 worldUp(0.0f, 1.0f, 0.0f);
 
@@ -330,12 +378,10 @@ int main(void)
   }
 
   // free your shapes here before opengl shuts down
-  // horse.reset();
-  // bunny.reset();
-  floorSphere.reset();
-  leftSphere.reset();
-  middleSphere.reset();
-  rightSphere.reset();
+  floor.reset();
+  homer.reset();
+  redSphere.reset();
+  horse.reset();
 
   glfwTerminate();
   return 0;
